@@ -204,7 +204,7 @@ Layers run **bottom to top**.
   thick:"About 100 m" }
 
 { gap:true, name:"Great Unconformity", age:"Precambrian to Cambrian",
-  period:null, note:"About 1 billion years missing", env:"One or two sentences." }
+  period:null, note:"About 1.2 billion years missing", env:"One or two sentences." }
 
 { marker:true, name:"Canyon rim", note:"A labelled line with no thickness." }
 ```

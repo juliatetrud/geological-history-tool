@@ -1036,7 +1036,7 @@ function renderLayers(locate){
     '<p class="kicker">Layers</p>' +
     '<h2 class="p-head">' + esc(col.title) + '</h2>' +
     '<p class="p-sub">' + esc(col.where) + '</p>' +
-    '<p class="p-body">' + esc(col.intro) + '</p>' +
+    '<p class="p-body">' + esc(col.intro) + '</p>' + sourcesLine(col.sources) +
     '<div class="col-switch" role="group" aria-label="Choose a column">' +
     COLUMNS.map((c, k) => '<button class="chip" data-k="' + k + '" aria-pressed="' + (k === colIdx) + '">' +
       esc(c.short) + '</button>').join("") + '</div>' +

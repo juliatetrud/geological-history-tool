@@ -285,7 +285,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     const take = (where, list) => (list || []).forEach(n => out.push([where, n]));
     PERIODS.forEach(p => { take("period " + p.id, p.sources); p.sites.forEach(s => take("site " + s.title, s.sources)); });
     COMPARISONS.forEach(c => take("comparison " + c.id, c.sources));
-    COLUMNS.forEach(c => c.layers.forEach(L => take("layer " + L.name, L.sources)));
+    COLUMNS.forEach(c => { take("column " + c.id, c.sources); c.layers.forEach(L => take("layer " + L.name, L.sources)); });
     if (typeof ANIMALS !== "undefined") Object.keys(ANIMALS).forEach(k => ANIMALS[k].forEach(a => take("animal " + a.genus, a.sources)));
     return out;
   })()`);
