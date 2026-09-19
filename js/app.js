@@ -264,9 +264,9 @@ function renderPeriod(){
     '<div class="fade">' +
     '<p class="kicker">' + esc(p.span) + '</p>' +
     '<h2 class="p-head">' + esc(p.headline) + '</h2>' +
-    p.body.map(b => '<p class="p-body">' + esc(b) + '</p>').join("") +
+    p.body.map(b => '<p class="p-body">' + gloss(b) + '</p>').join("") +
     '<ul class="facts">' + p.facts.concat([["Rock record", p.strata]]).map(f =>
-      '<li><span class="k">' + esc(f[0]) + '</span><span class="v">' + esc(f[1]) + '</span></li>'
+      '<li><span class="k">' + esc(f[0]) + '</span><span class="v">' + gloss(f[1]) + '</span></li>'
     ).join("") + '</ul>' +
     '<p class="sites-title">Places on this globe. Click a marker or a name.</p>' +
     '<ul class="sites">' + p.sites.map((s, n) =>
@@ -289,7 +289,7 @@ function renderSite(n){
     '<p class="kicker">' + esc(CAT_LABEL[s.cat]) + '</p>' +
     '<h2 class="p-head">' + esc(s.title) + '</h2>' +
     '<p class="p-sub">' + esc(s.sub) + '</p>' +
-    '<p class="p-body">' + esc(s.body) + '</p>' +
+    '<p class="p-body">' + gloss(s.body) + '</p>' +
     '<div class="thennow">' +
     '<div class="tn"><h4>' + p.ma + ' million years ago</h4>' +
       '<div class="scene">' + iconSVG(s.then.icon, CAT_COLOUR[s.cat]) + '</div>' +
@@ -669,11 +669,108 @@ function scrollToGlobe(){
     globeFrame.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block:"start" });
 }
 
+/* ===================== glossary =====================
+   The first appearance of a term in a panel becomes a button. The definition
+   rides along in a visually hidden span that aria-describedby points at, so a
+   screen reader reads it without the popover ever opening. Sighted users get
+   the popover on hover, on focus, and on click, which pins it until a second
+   click, a click elsewhere, or Escape.                                       */
+const TERM_KEYS = {}, glossSeen = new Set();
+let glossId = 0, termPop = null, pinnedTerm = null, dismissed = null;
+const canHover = window.matchMedia("(hover: hover)").matches;
+
+const TERM_RE = (function(){
+  const forms = [];
+  for (const key in GLOSSARY){
+    const all = [key, key + "s"].concat(GLOSSARY[key].also || []);
+    for (const f of all){ TERM_KEYS[f.toLowerCase()] = key; forms.push(f); }
+  }
+  /* longest first, so "hard parts" wins over any shorter term inside it */
+  forms.sort((a, b) => b.length - a.length);
+  const esc = f => f.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
+  return new RegExp("\\b(" + forms.map(esc).join("|") + ")\\b", "gi");
+})();
+
+/* escape the plain text, marking the first appearance of each term */
+function gloss(text){
+  let out = "", last = 0, m;
+  TERM_RE.lastIndex = 0;
+  while ((m = TERM_RE.exec(text)) !== null){
+    const key = TERM_KEYS[m[0].toLowerCase()];
+    if (!key || glossSeen.has(key)) continue;
+    glossSeen.add(key);
+    const id = "gl" + (++glossId);
+    out += esc(text.slice(last, m.index)) +
+      '<button type="button" class="term" data-term="' + esc(key) + '" aria-describedby="' + id +
+      '" aria-expanded="false">' + esc(m[0]) + '</button>' +
+      '<span hidden id="' + id + '">' + esc(key + ". " + GLOSSARY[key].def) + '</span>';
+    last = m.index + m[0].length;
+  }
+  return out + esc(text.slice(last));
+}
+
+function hideTerm(){
+  if (!termPop) return;
+  termPop.hidden = true;
+  if (pinnedTerm){ pinnedTerm.setAttribute("aria-expanded", "false"); pinnedTerm = null; }
+}
+function showTerm(btn, pin){
+  const g = GLOSSARY[btn.dataset.term];
+  if (!g) return;
+  if (!termPop){
+    termPop = document.createElement("div");
+    termPop.className = "termpop"; termPop.setAttribute("role", "tooltip");
+    termPop.hidden = true;
+    document.body.appendChild(termPop);
+  }
+  termPop.innerHTML = '<b>' + esc(btn.dataset.term) + '</b> ' + esc(g.def) + sourcesLine(g.sources);
+  termPop.hidden = false;
+  if (pin){ pinnedTerm = btn; btn.setAttribute("aria-expanded", "true"); }
+  /* place under the term, kept inside the window */
+  const r = btn.getBoundingClientRect(), w = termPop.offsetWidth;
+  const x = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2));
+  const below = r.bottom + 8 + termPop.offsetHeight < window.innerHeight;
+  termPop.style.left = (x + window.scrollX).toFixed(0) + "px";
+  termPop.style.top = ((below ? r.bottom + 8 : r.top - termPop.offsetHeight - 8) + window.scrollY).toFixed(0) + "px";
+}
+document.addEventListener("click", e => {
+  const btn = e.target.closest && e.target.closest(".term");
+  if (!btn){ if (!(e.target.closest && e.target.closest(".termpop"))) hideTerm(); return; }
+  e.preventDefault();
+  dismissed = null;
+  if (pinnedTerm === btn) hideTerm(); else { hideTerm(); showTerm(btn, true); }
+});
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape" || !termPop || termPop.hidden) return;
+  const b = pinnedTerm;
+  hideTerm();
+  /* remember it, so returning focus to the button does not reopen what was just closed */
+  if (b){ dismissed = b; b.focus(); }
+});
+document.addEventListener("focusin", e => {
+  const btn = e.target.closest && e.target.closest(".term");
+  if (btn && !pinnedTerm && btn !== dismissed) showTerm(btn, false);
+});
+document.addEventListener("focusout", e => {
+  dismissed = null;
+  if (!pinnedTerm && e.target.closest && e.target.closest(".term")) hideTerm();
+});
+if (canHover){
+  document.addEventListener("mouseover", e => {
+    const btn = e.target.closest && e.target.closest(".term");
+    if (btn && !pinnedTerm) showTerm(btn, false);
+  });
+  document.addEventListener("mouseout", e => {
+    if (!pinnedTerm && e.target.closest && e.target.closest(".term")) hideTerm();
+  });
+}
+
 /* ===================== panel modes ===================== */
 const modeChips = { compare:document.getElementById("modeCompare"),
                     layers:document.getElementById("modeLayers"),
                     animals:document.getElementById("modeAnimals") };
 function setMode(m){
+  glossSeen.clear(); hideTerm();
   mode = m;
   for (const k in modeChips) modeChips[k].setAttribute("aria-pressed", k === m);
 }
@@ -723,7 +820,7 @@ function renderCompare(){
         const when = steps.map(s => periodPhrase(PERIODS[periodIndex(s.pid)])).join(", then ");
         return '<li class="cmp" data-id="' + c.id + '">' +
           '<h4 class="cmp-t">' + esc(c.title) + '</h4>' +
-          '<p class="cmp-b">' + esc(c.body) + '</p>' +
+          '<p class="cmp-b">' + gloss(c.body) + '</p>' +
           '<ul class="cmp-places">' + c.places.map((pl, i) =>
             '<li><button class="place" data-i="' + i + '"><span class="pin"></span>' + esc(pl.label) +
             (steps.length > 1 ? '<span class="pw"> · ' + esc(PERIODS[periodIndex(pl.period || c.period)].name) + '</span>' : '') +
@@ -796,7 +893,7 @@ function renderAnimals(){
         '<h4 class="cmp-t">' + esc(a.genus) + ' <span class="an-group">(' + esc(a.group) + ')</span></h4>' +
         '<p class="an-tag"><svg viewBox="0 0 20 20" aria-hidden="true">' + h.icon + '</svg>' + esc(h.name) + '</p>' +
         '<p class="an-size">' + esc(a.size) + '</p>' +
-        '<p class="cmp-b">' + esc(a.environment) + ' ' + esc(a.matters) + '</p>' +
+        '<p class="cmp-b">' + gloss(a.environment + ' ' + a.matters) + '</p>' +
         '<div class="cmp-act"><button class="chip go">Show on globe</button>' +
         '<span class="cmp-when">Found at ' + esc(a.place) + '</span></div>' +
         (site >= 0 ? '<button class="place an-site" data-site="' + site + '"><span class="pin"></span>Read about ' +
@@ -1012,7 +1109,7 @@ function renderLayerCard(){
   card.innerHTML =
     '<p class="kicker">' + esc(L.age) + '</p>' +
     '<h3 class="lc-name">' + esc(L.name) + '</h3>' +
-    '<p class="lc-env">' + esc(L.env) + '</p>' +
+    '<p class="lc-env">' + gloss(L.env) + '</p>' +
     '<p class="lc-thick">' + esc(L.gap ? L.note : L.thick) + '</p>' +
     '<div class="cmp-act"><button class="chip go">Show on globe</button><span class="cmp-when">' +
     (p ? "Globe set to " + esc(periodPhrase(p)) : "Outside this timeline; the globe stays where it is") +
@@ -1226,6 +1323,10 @@ dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
 document.documentElement.style.setProperty("--accent", PERIODS[idx].accent);
 document.getElementById("stampName").textContent = PERIODS[idx].name;
 document.getElementById("stampAge").textContent = "present";
+/* static prose outside the panels, marked once at startup */
+document.querySelectorAll("[data-gloss]").forEach(n => { n.innerHTML = gloss(n.textContent.trim()); });
+glossSeen.clear();
+
 fitLabels();
 buildPeriod();
 renderPeriod();

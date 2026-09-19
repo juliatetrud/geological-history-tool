@@ -44,6 +44,9 @@ and no runtime dependencies beyond two Google Fonts, and runs from a folder on d
   southern England from Somerset to Dover, drawn in the same colours as the timeline.
   Click a layer to see where that ground was when the rock was laid down.
   Unconformities are drawn as wavy breaks.
+- **Glossary.** Technical words explain themselves in place. The first appearance of a term
+  in a panel gets a dotted underline; hover, focus or click it for a plain definition and its
+  sources. A second click or Escape closes it.
 - **Rock record.** Each period's fact list ends with the kind of rock typically being
   laid down at the time and where to see it.
 
@@ -76,6 +79,7 @@ js/geometry.js      spherical maths, plate outlines (PLATES), icon drawings (ICO
 js/data.js          PERIODS, COMPARISONS, COLUMNS, LANDMARKS, PERIOD_LABELS: all content
 js/terrain.js       BIOMES, BELTS, LANDCOVER, RIVERS, LAKES, RANGES, SEAS: what colours the land
 js/animals.js       ANIMALS: the animals of each period
+js/glossary.js      GLOSSARY: the terms defined in place
 js/sources.js       SOURCES: every reference, numbered; SILHOUETTES: image credits
 js/app.js           runtime: drawing, camera, panel modes, controls
 sources.html        the numbered reference list (rendered by js/sources-page.js)
@@ -197,6 +201,23 @@ A silhouette may be used only if PhyloPic gives it as CC0 or CC BY. Save the SVG
 `img/animals/` and add a line to `SILHOUETTES` in `js/sources.js` recording the licence,
 the contributor and the image page. `npm test` checks that every file referenced exists
 and is credited.
+
+### A glossary term
+
+Add an entry to `GLOSSARY` in `js/glossary.js`.
+
+```js
+"cyclothem": {
+  def:"A repeating stack of sandstone, shale, seatearth and coal, produced as sea level rose and fell.",
+  also:["cyclothemic"],          // optional; the term and its simple plural are matched anyway
+  sources:[220] }
+```
+
+The renderer marks the first appearance of each term in a panel and nowhere else, so a term
+must be spelled in the prose the way it is spelled here. Keep a definition free of other
+jargon. Static prose outside the panels is marked too if its element carries `data-gloss`.
+`npm test` fails if a term never appears in the prose, or if it cites a source that does not
+exist.
 
 ### A comparison
 

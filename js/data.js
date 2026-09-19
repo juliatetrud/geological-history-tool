@@ -11,7 +11,7 @@ const PERIODS = [
   headline:"Gondwana is still being welded together",
   body:[
     "From 539 to 487 million years ago the continents sit scattered across the southern half of the globe. The rock that is now North America (Laurentia) lies on the equator, turned a quarter turn from the way it faces today, while Africa, South America, India, Australia and Antarctica are being welded into Gondwana.",
-    "Warm shallow seas cover most continental interiors, and animals with hard parts have just appeared in them. The land above is bare rock and sand. It carries no plants and nothing taller than a bacterial crust."
+    "Warm shallow seas cover most continental interiors, and animals in them have just started building shells and armour. These are the first hard parts in the fossil record, and they are why fossils become common from this point on: soft bodies rot, shells do not. The land above is bare rock and sand, carrying no plants and nothing taller than a bacterial crust."
   ],
   facts:[
     ["North pole","Open ocean, as it will be for most of the next 450 million years"],

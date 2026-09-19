@@ -42,7 +42,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async function(){
   console.log("page" + (reducedMotion ? " (prefers-reduced-motion)" : ""));
-  ok(srcs.join() === "js/geometry.js,js/data.js,js/terrain.js,js/animals.js,js/sources.js,js/app.js", "scripts load in order: " + srcs.join(", "));
+  ok(srcs.join() === "js/geometry.js,js/data.js,js/terrain.js,js/animals.js,js/glossary.js,js/sources.js,js/app.js", "scripts load in order: " + srcs.join(", "));
   ok(doc.querySelector('link[href="css/globe.css"]') !== null, "stylesheet is linked");
   ok(!/type=["']module["']/.test(html), "no ES modules, so the page runs from file://");
   for (const src of srcs) run(fs.readFileSync(path.join(root, src), "utf8"));
@@ -273,8 +273,46 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(run("mode") === "animals" && /Cambrian/.test(panel.querySelector(".p-head").textContent), "the list follows the period");
   click(panel.querySelector(".back"));
 
+  console.log("glossary");
+  const FOOTER = doc.querySelector("footer.foot").textContent;
+  ok(run(`Object.keys(GLOSSARY).every(k => GLOSSARY[k].def && GLOSSARY[k].def.length > 30 &&
+          GLOSSARY[k].sources.length >= 1 && (!GLOSSARY[k].also || Array.isArray(GLOSSARY[k].also)))`),
+     run("Object.keys(GLOSSARY).length") + " glossary entries, each with a definition and sources");
+  /* every term must actually occur in the prose, or it is dead weight */
+  const unused = run(`(function(){
+    const hay = (JSON.stringify([PERIODS, COMPARISONS, COLUMNS, ANIMALS]) + ${JSON.stringify(FOOTER)}).toLowerCase();
+    return Object.keys(GLOSSARY).filter(k => {
+      const forms = [k, k + "s"].concat(GLOSSARY[k].also || []);
+      return !forms.some(f => hay.indexOf(f.toLowerCase()) >= 0);
+    });
+  })()`);
+  ok(unused.length === 0, "every glossary term appears in the prose" + (unused.length ? ": " + unused.join(", ") : ""));
+  run("setPeriod(" + ids.indexOf("cam") + ", true); tMix = 1; draw();");
+  ok(run("PERIODS.find(p => p.id === 'cam').body.join(' ')").indexOf("These are the first hard parts in the fossil record, and they are why fossils become common from this point on: soft bodies rot, shells do not.") > 0,
+     "the Cambrian overview explains what hard parts are");
+  const terms = [...panel.querySelectorAll("button.term")];
+  ok(terms.length > 0, terms.length + " terms marked in the Cambrian panel");
+  const hp = terms.find(t => t.dataset.term === "hard parts");
+  ok(hp && doc.getElementById(hp.getAttribute("aria-describedby")) &&
+     /calcium carbonate/.test(doc.getElementById(hp.getAttribute("aria-describedby")).textContent),
+     "a term is a button whose aria-describedby points at its definition");
+  ok(!hp.getAttribute("title"), "the definition is not hidden in a title attribute");
+  ok(panel.querySelectorAll('button.term[data-term="hard parts"]').length === 1, "a term is marked once per panel, not on every occurrence");
+  click(hp);
+  const pop = doc.querySelector(".termpop");
+  ok(pop && !pop.hidden && /calcium carbonate/.test(pop.textContent) && hp.getAttribute("aria-expanded") === "true",
+     "clicking a term opens the definition");
+  ok(pop.querySelector(".src a"), "the definition cites its sources");
+  click(hp);
+  ok(pop.hidden && hp.getAttribute("aria-expanded") === "false", "clicking the term again closes it");
+  click(hp);
+  doc.dispatchEvent(new win.KeyboardEvent("keydown", { key:"Escape", bubbles:true }));
+  ok(pop.hidden, "Escape closes the definition");
+
   console.log("sources");
   const nums = run("SOURCES.map(s => s.n)");
+  ok(run(`[].concat(...Object.keys(GLOSSARY).map(k => GLOSSARY[k].sources)).every(n => SOURCES.some(s => s.n === n))`),
+     "every glossary definition cites a listed source");
   ok(nums.length > 0 && new Set(nums).size === nums.length, nums.length + " sources, each with its own number");
   ok(run(`SOURCES.every(s => SOURCE_GROUPS.some(g => g.id === s.group) && s.authors && s.title && s.container &&
           /^https:\\/\\//.test(s.url) && /^\\d{4}-\\d{2}-\\d{2}$/.test(s.accessed) && (s.year === null || s.year > 1700))`),
