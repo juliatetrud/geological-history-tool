@@ -249,6 +249,30 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   click(panel.querySelector(".back"));
   ok(run("mode") === "period" && /Forests appear/.test(panel.textContent), "back returns to the Devonian overview");
 
+  console.log("panel: animals");
+  run("setPeriod(" + ids.indexOf("dev") + ", true); tMix = 1; draw();");
+  click(doc.getElementById("modeAnimals"));
+  ok(run("mode") === "animals" && panel.querySelectorAll(".animal").length === run("ANIMALS.dev.length"), "Animals chip lists the Devonian animals");
+  ok(run(`Object.keys(ANIMALS).every(k => PERIODS.some(p => p.id === k) && ANIMALS[k].every(a =>
+          PLATES[a.plate] && isFinite(a.lon) && isFinite(a.lat) && /^(marine|freshwater|land|air)$/.test(a.habitat) &&
+          a.genus && a.group && a.environment && a.size && a.matters && a.place && a.sources.length >= 1 &&
+          (!a.site || PERIODS.find(p => p.id === k).sites.some(s => s.title === a.site))))`),
+     "every animal has a plate, habitat, texts and sources, and links only to a site of its own period");
+  const imgs = run("[].concat(...Object.keys(ANIMALS).map(k => ANIMALS[k])).filter(a => a.img).map(a => a.img)");
+  ok(imgs.every(i => fs.existsSync(path.join(root, i))) && imgs.every(i => run("SILHOUETTES.some(x => x.file === " + JSON.stringify(i) + " && /^CC0|^CC BY \\d/.test(x.licence))")),
+     imgs.length + " silhouettes exist on disk and each is credited under CC0 or CC BY");
+  const tik = [...panel.querySelectorAll(".animal")].find(li => /Tiktaalik/.test(li.textContent));
+  click(tik.querySelector(".go"));
+  run("tMix = 1; draw();");
+  ok(doc.querySelectorAll("#gHi > g").length === 1 && tik.classList.contains("active"), "Show on globe marks the animal's locality");
+  ok(tik.querySelector(".src a") && /sources\.html#s\d+/.test(tik.querySelector(".src a").getAttribute("href")), "each animal ends with a linked Sources line");
+  click(tik.querySelector(".an-site"));
+  ok(run("mode") === "site" && /Tiktaalik/.test(panel.querySelector(".p-head").textContent), "an animal links to the site that tells its story");
+  click(doc.getElementById("modeAnimals"));
+  click(doc.querySelectorAll(".seg")[0]);
+  ok(run("mode") === "animals" && /Cambrian/.test(panel.querySelector(".p-head").textContent), "the list follows the period");
+  click(panel.querySelector(".back"));
+
   console.log("sources");
   const nums = run("SOURCES.map(s => s.n)");
   ok(nums.length > 0 && new Set(nums).size === nums.length, nums.length + " sources, each with its own number");
