@@ -559,6 +559,9 @@ The plate poses were solved and checked numerically before this pass, so correct
 against a published reconstruction can pull it away from where the tool actually draws the
 marker. The README already says positions are schematic, and more so before 200 Ma.
 
+Both of these are now stated in the tool itself. The site gives the published figure and the
+figure this globe draws, side by side, and the About dialog explains why they differ.
+
 **Rhynie sits at 25 degrees south in the text and 9 degrees south on the globe.** Wellman 2018
 places the Rhynie chert at about 25 degrees south, and the site text was corrected to match.
 The tool's Devonian poses plot Aberdeenshire at about 9 degrees south, and southern England at
@@ -568,5 +571,9 @@ would call that ground desert on its own, and at 9 degrees south it would call i
 forest, which is exactly the case the patch exists to override.
 
 
-**The Silurian labels.** At the tool's Silurian moment of 425 million years ago, Cocks and Torsvik 2005 show Laurentia and Baltica already joined as Laurussia with the Iapetus closed, while the tool still draws a gap between them and labels them separately. The plate poses were solved and checked numerically before this pass and were left alone, so the labels were left to match them. Changing one without the other would be worse than leaving both.
+**The Silurian labels.** At the tool's Silurian moment of 425 million years ago, Cocks and Torsvik
+2005 show Laurentia and Baltica already joined as Laurussia with the Iapetus closed, while this
+globe draws about 20 degrees of water between Newfoundland and Scotland and labels the two
+continents separately. The plate poses were left alone, so the labels were left to match them.
+The Caledonian collision site now states both readings.
 

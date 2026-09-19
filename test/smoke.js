@@ -204,6 +204,24 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   click(panel.querySelector(".back"));
   ok(run("mode") === "period", "back returns to the overview");
 
+  console.log("where the globe and the published reconstructions differ");
+  /* the tool corrects its text against published work but keeps its own plate poses,
+     so the two can disagree; the reader should see both numbers, not just one */
+  const bodyOf = (pid, title) => run("PERIODS.find(p => p.id === " + JSON.stringify(pid) +
+    ").sites.find(s => s.title === " + JSON.stringify(title) + ").body");
+  const rhynie = bodyOf("dev", "Rhynie chert");
+  ok(/about 25° south/.test(rhynie) && /this globe draws it at about 9° south/.test(rhynie),
+     "the Rhynie site gives the published latitude and the one this globe draws");
+  const caled = bodyOf("sil", "The Caledonian collision");
+  ok(/already closed/.test(caled) && /this globe still draws/.test(caled),
+     "the Caledonian site says the globe draws the ocean open where the reconstruction closes it");
+  ok(/Published reconstructions disagree/.test(doc.querySelector(".about").textContent) &&
+     /10 to 20 degrees/.test(doc.querySelector(".about").textContent),
+     "the About dialog explains how far reconstructions differ");
+  const aboutSrc = doc.querySelector('.about p.src[data-src]');
+  ok(aboutSrc && aboutSrc.querySelectorAll('a[href^="sources.html#s"]').length >= 4,
+     "that paragraph carries its own numbered sources");
+
   console.log("panel: comparisons");
   click(doc.getElementById("modeCompare"));
   ok(run("mode") === "compare" && doc.getElementById("modeCompare").getAttribute("aria-pressed") === "true", "Comparisons chip opens the mode");
