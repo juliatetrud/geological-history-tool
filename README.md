@@ -107,7 +107,9 @@ pins both with a hash so that any change is a deliberate one.
 
 ## Adding content
 
-All content lives in `js/data.js`.
+All content lives in `js/data.js`. Prose follows the voice guide in
+`.claude/skills/geological-writing-voice/SKILL.md`, which Claude Code also loads as a skill
+in this project, and the smoke test checks its mechanical rules.
 
 ### A site
 
