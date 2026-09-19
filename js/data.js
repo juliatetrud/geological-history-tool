@@ -617,3 +617,255 @@ const PERIODS = [
   ]
 }
 ];
+
+/* ===================== look-alikes and relatives =====================
+   Paired places that resemble each other, in two groups:
+     inherited  - alike because they were once joined
+     convergent - alike for other reasons
+   period: the PERIODS id that best shows the comparison.
+   places: pinned to a plate at modern lon/lat, like sites. `label` is used
+   in the panel, `short` on the globe. A place may carry its own `period`
+   when the two halves of a comparison belong to different times.
+   New Zealand, Tasmania and New Guinea ride on the AUS plate and Puerto
+   Rico on NAM; none of them has an outline of its own.                    */
+
+const COMPARE_GROUPS = [
+  { id:"inherited", title:"Inherited",
+    sub:"Alike because they were once joined" },
+  { id:"convergent", title:"Convergent",
+    sub:"Alike for other reasons" }
+];
+
+const COMPARISONS = [
+{
+  id:"dwyka", group:"inherited", period:"car",
+  title:"One glacial deposit on five continents",
+  body:"The Dwyka tillite of South Africa, the Itararé of Brazil, the Talchir of India and matching beds in Australia and Antarctica are the same Carboniferous to Permian glacial deposit. Each rests on bedrock scratched by moving ice, and the scratches line up once the continents are put back together. It was Wegener's strongest evidence for drift.",
+  places:[
+    { plate:"AFR", lon:24.6, lat:-28.6, label:"Dwyka tillite, South Africa", short:"Dwyka" },
+    { plate:"SAM", lon:-50,  lat:-25,   label:"Itararé Group, Brazil", short:"Itararé" },
+    { plate:"IND", lon:85.2, lat:21,    label:"Talchir boulder bed, India", short:"Talchir" },
+    { plate:"AUS", lon:138.5,lat:-35.1, label:"Hallett Cove, South Australia", short:"Australia" },
+    { plate:"ANT", lon:165,  lat:-84,   label:"Pagoda Formation, Antarctica", short:"Antarctica" }
+  ]
+},
+{
+  id:"mesosaurus", group:"inherited", period:"per",
+  title:"Mesosaurus",
+  body:"A freshwater reptile about a metre long, found only in Early Permian rocks on either side of the South Atlantic: southern Brazil and Uruguay on one side, Namibia and South Africa on the other. It was not built to cross an ocean. In the Permian there was no ocean to cross: the two basins lay side by side in the interior of Gondwana.",
+  places:[
+    { plate:"SAM", lon:-50.5, lat:-25.5, label:"Irati Formation, Brazil", short:"Brazil" },
+    { plate:"AFR", lon:18.5,  lat:-26.5, label:"Whitehill Formation, Namibia", short:"Namibia" }
+  ]
+},
+{
+  id:"lystrosaurus", group:"inherited", period:"tri",
+  title:"Lystrosaurus",
+  body:"A stocky plant-eater the size of a pig, and the commonest land animal of the Early Triassic. Its bones turn up in South Africa, India and Antarctica. A walking animal reached all three because they were one piece of land.",
+  places:[
+    { plate:"AFR", lon:26,    lat:-31,   label:"Karoo Basin, South Africa", short:"Karoo" },
+    { plate:"IND", lon:87,    lat:23.6,  label:"Panchet Formation, India", short:"India" },
+    { plate:"ANT", lon:162.4, lat:-84.2, label:"Coalsack Bluff, Antarctica", short:"Antarctica" }
+  ]
+},
+{
+  id:"glossopteris", group:"inherited", period:"per",
+  title:"Glossopteris",
+  body:"A Permian seed fern with tongue-shaped leaves, found on every Gondwanan continent: South America, Africa, Madagascar, India, Australia and Antarctica. Its seeds were too large to travel far on the wind. The coal it formed is mined today in places that now sit in the tropics, the desert and the polar ice.",
+  places:[
+    { plate:"SAM", lon:-51,   lat:-28,   label:"Paraná Basin, Brazil", short:"Brazil" },
+    { plate:"AFR", lon:29,    lat:-26,   label:"Witbank coalfield, South Africa", short:"South Africa" },
+    { plate:"MAD", lon:44.5,  lat:-24,   label:"Sakoa Basin, Madagascar", short:"Madagascar" },
+    { plate:"IND", lon:87,    lat:23.7,  label:"Raniganj coalfield, India", short:"India" },
+    { plate:"AUS", lon:150.5, lat:-32.5, label:"Sydney Basin, Australia", short:"Australia" },
+    { plate:"ANT", lon:162,   lat:-85,   label:"Transantarctic Mountains", short:"Antarctica" }
+  ]
+},
+{
+  id:"caledonides", group:"inherited", period:"dev",
+  title:"One mountain belt on both sides of the Atlantic",
+  body:"The northern Appalachians, the Scottish Highlands, the Norwegian Caledonides and the mountains of eastern Greenland are one Silurian to Devonian mountain belt. It rose where Laurentia and Baltica collided, and the same rock types and fold directions run through all four. The Atlantic opened along its length much later and split it.",
+  places:[
+    { plate:"NAM", lon:-72,  lat:44, label:"Northern Appalachians", short:"Appalachians" },
+    { plate:"NAM", lon:-25,  lat:72, label:"East Greenland", short:"Greenland" },
+    { plate:"EUR", lon:-4.5, lat:57, label:"Scottish Highlands", short:"Scotland" },
+    { plate:"EUR", lon:9,    lat:62, label:"Norwegian Caledonides", short:"Norway" }
+  ]
+},
+{
+  id:"nothofagus", group:"inherited", period:"cre",
+  title:"Southern beech",
+  body:"Nothofagus grows in Chile, New Zealand, Tasmania and New Guinea, and its fossil leaves occur in Antarctica. Its seeds do not survive salt water. The forests were continuous across southern Gondwana in the Cretaceous and were carried apart as it broke up.",
+  places:[
+    { plate:"SAM", lon:-72.5, lat:-41,   label:"Valdivian forest, Chile", short:"Chile" },
+    { plate:"ANT", lon:-57,   lat:-64,   label:"Fossil leaves, Antarctic Peninsula", short:"Antarctica" },
+    { plate:"AUS", lon:146.5, lat:-42,   label:"Tasmania", short:"Tasmania" },
+    { plate:"AUS", lon:172,   lat:-42.5, label:"South Island, New Zealand", short:"New Zealand" },
+    { plate:"AUS", lon:145,   lat:-6,    label:"New Guinea highlands", short:"New Guinea" }
+  ]
+},
+{
+  id:"redbeds", group:"inherited", period:"per",
+  title:"Permian and Triassic red beds",
+  body:"The Coconino Sandstone of Arizona, the Penrith Sandstone of northern England and the Buntsandstein of Germany are desert sandstones from the interior of Pangaea. The grains are rounded and frosted by wind and coated in iron oxide. They look alike because they formed in the same desert belt on the same continent.",
+  places:[
+    { plate:"NAM", lon:-112, lat:36,   label:"Coconino Sandstone, Arizona", short:"Coconino" },
+    { plate:"EUR", lon:-2.7, lat:54.7, label:"Penrith Sandstone, England", short:"Penrith" },
+    { plate:"EUR", lon:9.5,  lat:50.5, label:"Buntsandstein, Germany", short:"Buntsandstein" }
+  ]
+},
+{
+  id:"laterite", group:"convergent", period:"now",
+  title:"Red soil in Puerto Rico and India",
+  body:"Both are laterite, formed where tropical heat and rain strip everything out of the soil except iron and aluminium oxides. Puerto Rico is a Cretaceous volcanic island arc and was never part of Gondwana. The plants the two share, among them mango, tamarind, breadfruit, jackfruit and flamboyán, arrived by ship in the last 500 years.",
+  places:[
+    { plate:"NAM", lon:-66.5, lat:18.2, label:"Puerto Rico", short:"Puerto Rico" },
+    { plate:"IND", lon:76.2,  lat:11,   label:"Kerala, India", short:"Kerala" }
+  ]
+},
+{
+  id:"succulents", group:"convergent", period:"now",
+  title:"Cacti and euphorbias",
+  body:"Cacti in the Americas and succulent euphorbias in Africa have the same body plan: a ribbed green stem that stores water, spines, and no leaves. They share no succulent ancestor. Each is a separate answer to drought.",
+  places:[
+    { plate:"NAM", lon:-111.5, lat:32,    label:"Sonoran Desert, Arizona", short:"Cacti" },
+    { plate:"AFR", lon:25.5,   lat:-33.3, label:"Eastern Cape, South Africa", short:"Euphorbias" }
+  ]
+},
+{
+  id:"fogdeserts", group:"convergent", period:"now",
+  title:"Atacama and Namib",
+  body:"Both are coastal fog deserts on the west side of a continent at the same latitude. A cold current, the Humboldt off Chile and the Benguela off Namibia, chills the air so that it carries fog but almost no rain. The resemblance comes from ocean circulation, not from any past connection.",
+  places:[
+    { plate:"SAM", lon:-70, lat:-24, label:"Atacama Desert, Chile", short:"Atacama" },
+    { plate:"AFR", lon:15,  lat:-24, label:"Namib Desert, Namibia", short:"Namib" }
+  ]
+},
+{
+  id:"polar", group:"convergent", period:"ord",
+  title:"Ice on the Sahara, ice on Antarctica",
+  body:"At the end of the Ordovician the central Sahara lay at the South Pole under an ice sheet, and its bedrock still carries the grooves. Antarctica sits in that position now. Each was glaciated because of where it was at the time, and the only thing they share is having sat on the pole.",
+  places:[
+    { plate:"AFR", lon:3, lat:26,  label:"Central Sahara", short:"Sahara", period:"ord" },
+    { plate:"ANT", lon:0, lat:-90, label:"Antarctica", short:"Antarctica", period:"now" }
+  ]
+}
+];
+
+/* ===================== stratigraphic columns =====================
+   layers run bottom to top. Each layer:
+     name, age (label), period (PERIODS id, or null if off this timeline),
+     to (optional younger PERIODS id when a unit spans two periods),
+     env (one sentence), thick (note), m (metres used for drawing),
+     lith: sandstone | shale | limestone | chalk | coal | mixed | crystalline | till
+   Other entries:
+     { gap:true, ... }    an unconformity, drawn as a wavy break
+     { marker:true, ... } a labelled line with no thickness
+   patchy:true draws the unit as channel fills cut into the one below.      */
+
+const COLUMNS = [
+{
+  id:"canyon", title:"Grand Canyon and Grand Staircase", short:"Grand Canyon",
+  where:"Arizona and Utah", plate:"NAM", lon:-112, lat:36.5,
+  intro:"The canyon wall runs from Precambrian basement at the river to Permian limestone at the rim. North of the rim the Grand Staircase carries on upward through the Mesozoic to the pink cliffs of Bryce Canyon.",
+  layers:[
+    { name:"Vishnu Schist and Zoroaster Granite", age:"Precambrian, about 1,700 million years old",
+      period:null, lith:"crystalline", m:null,
+      env:"The roots of an ancient mountain range, cooked and squeezed deep in the crust and then worn flat. It is older than anything on this globe's timeline.",
+      thick:"Basement; the base is not exposed" },
+    { gap:true, name:"Great Unconformity", age:"Precambrian to Cambrian", period:null,
+      note:"About 1 billion years missing",
+      env:"Cambrian beach sand lies directly on the worn-down basement. Whatever was deposited in between was eroded away before the sea returned." },
+    { name:"Tapeats Sandstone", age:"Cambrian", period:"cam", lith:"sandstone", m:60,
+      env:"Beach and nearshore sand laid down as the sea advanced across bare rock.",
+      thick:"About 60 m; with the two units above, about 300 m" },
+    { name:"Bright Angel Shale", age:"Cambrian", period:"cam", lith:"shale", m:110,
+      env:"Offshore mud with trilobite tracks and worm burrows, deposited as the water deepened.",
+      thick:"About 110 m" },
+    { name:"Muav Limestone", age:"Cambrian", period:"cam", lith:"limestone", m:130,
+      env:"Lime mud from clear water further from shore, the last stage of the same advancing sea.",
+      thick:"About 130 m" },
+    { gap:true, name:"Ordovician and Silurian absent", age:"Ordovician and Silurian", period:"ord",
+      note:"More than 100 million years missing",
+      env:"No rock of either period survives here. The region stood at or above sea level, and anything that was laid down was removed again." },
+    { name:"Temple Butte Formation", age:"Devonian", period:"dev", lith:"limestone", m:20, patchy:true,
+      env:"Tidal channel fills cut into the top of the Muav, thin and patchy in the eastern canyon and thicker to the west.",
+      thick:"A few metres to 30 m in the east; over 100 m in the west" },
+    { name:"Redwall Limestone", age:"Early Carboniferous", period:"car", lith:"limestone", m:150,
+      env:"A shallow tropical sea full of crinoids, corals and brachiopods. The rock is grey; the red is a stain washed down from the layers above.",
+      thick:"About 150 m, forming a sheer cliff" },
+    { name:"Supai Group", age:"Late Carboniferous to Permian", period:"car", to:"per", lith:"mixed", m:300,
+      env:"A low coastal plain of red mud, river sand and the first dunes, as the sea withdrew.",
+      thick:"About 300 m" },
+    { name:"Hermit Shale", age:"Permian", period:"per", lith:"shale", m:90,
+      env:"A river floodplain of red silt and mud with fern and conifer fossils.",
+      thick:"About 90 m" },
+    { name:"Coconino Sandstone", age:"Permian", period:"per", lith:"sandstone", m:100,
+      env:"Desert dunes, with sweeping cross-beds and the trackways of reptiles that walked up the dune faces.",
+      thick:"About 100 m" },
+    { name:"Toroweap and Kaibab formations", age:"Permian", period:"per", lith:"limestone", m:200,
+      env:"A shallow sea returning over the dunes; the Kaibab Limestone forms the canyon rim.",
+      thick:"About 200 m together" },
+    { marker:true, name:"Canyon rim",
+      note:"Younger layers are stripped off here and survive to the north, in the Grand Staircase" },
+    { name:"Moenkopi and Chinle formations", age:"Triassic", period:"tri", lith:"mixed", m:400,
+      env:"Red tidal flats, then a river plain whose buried logs became the petrified wood of the Painted Desert.",
+      thick:"Several hundred metres; drawn as 400 m" },
+    { name:"Navajo Sandstone", age:"Jurassic", period:"jur", lith:"sandstone", m:500,
+      env:"One of the largest dune fields known, now the white cliffs of Zion.",
+      thick:"Up to 600 m at Zion" },
+    { name:"Dakota Sandstone and Mancos Shale", age:"Cretaceous", period:"cre", lith:"shale", m:300,
+      env:"Beach sand and then dark marine mud, laid down as the Western Interior Seaway flooded the region.",
+      thick:"About 300 m" },
+    { name:"Claron Formation", age:"Paleogene", period:"pgn", lith:"limestone", m:300,
+      env:"Lakes and streams on a high basin floor; the pink limestone weathers into the hoodoos of Bryce Canyon.",
+      thick:"Up to 300 m" }
+  ]
+},
+{
+  id:"england", title:"Southern England, Somerset to Dover", short:"Southern England",
+  where:"Somerset, Dorset, the Weald and the Thames basin", plate:"EUR", lon:0, lat:51,
+  intro:"Travelling east from the Mendip Hills to the Kent coast you cross younger and younger rock. Stacked in order, the layers record a drift from south of the equator to 51° north.",
+  layers:[
+    { name:"Old Red Sandstone", age:"Devonian", period:"dev", lith:"sandstone", m:500,
+      env:"Rivers crossing an equatorial desert, carrying red sand and gravel south from the new Caledonian mountains.",
+      thick:"Hundreds of metres in the Mendips; kilometres in Wales" },
+    { name:"Carboniferous Limestone", age:"Early Carboniferous", period:"car", lith:"limestone", m:900,
+      env:"A clear tropical sea with corals and crinoids, now the grey rock of Cheddar Gorge and the Avon Gorge.",
+      thick:"About 900 m in the Mendips" },
+    { name:"Coal Measures", age:"Late Carboniferous", period:"car", lith:"coal", m:2000,
+      env:"Equatorial swamp forest on a river delta, drowned and rebuilt many times; each coal seam is one forest.",
+      thick:"More than 2,000 m in the Somerset coalfield; not drawn to scale" },
+    { gap:true, name:"Variscan unconformity", age:"Latest Carboniferous to Permian", period:"per",
+      note:"Tens of millions of years missing",
+      env:"The Carboniferous rocks were folded into mountains as Pangaea assembled, then eroded. The desert beds above lie across their upturned edges." },
+    { name:"Penrith and Sherwood sandstones, Mercia Mudstone", age:"Permian to Triassic", period:"per", to:"tri", lith:"sandstone", m:450,
+      env:"Dunes and flash-flood rivers in the interior of Pangaea, then the red mud and salt of drying lakes.",
+      thick:"Several hundred metres; over 1,000 m in the deepest basins" },
+    { name:"Blue Lias", age:"Early Jurassic", period:"jur", lith:"limestone", m:30,
+      env:"A muddy sea floor in alternating bands of limestone and shale, with the ichthyosaurs and ammonites of Lyme Regis.",
+      thick:"About 30 m at Lyme Regis" },
+    { name:"Oxford Clay, Portland and Purbeck beds", age:"Middle to Late Jurassic", period:"jur", lith:"mixed", m:300,
+      env:"A shallow sea laying down clay and then white limestone, ending in coastal lagoons with dinosaur footprints.",
+      thick:"A few hundred metres in Dorset" },
+    { name:"Wealden beds", age:"Early Cretaceous", period:"cre", lith:"shale", m:800,
+      env:"A river plain of sand and clay where Iguanodon lived, first described from bones found in Sussex.",
+      thick:"Up to 800 m in the Weald; not drawn to scale" },
+    { name:"Chalk", age:"Late Cretaceous", period:"cre", lith:"chalk", m:400,
+      env:"Coccolith ooze settling in a clear open sea over a drowned Europe; it forms the cliffs at Dover.",
+      thick:"Up to 400 m" },
+    { gap:true, name:"Top of the Chalk eroded", age:"Latest Cretaceous to early Paleogene", period:"pgn",
+      note:"More than 10 million years missing",
+      env:"The sea floor was lifted and worn down before Paleogene sand and clay covered it. The end of the Cretaceous is not preserved here." },
+    { name:"London Clay", age:"Paleogene", period:"pgn", lith:"shale", m:150,
+      env:"The muddy margin of a tropical sea, with the fossil fruits of palms and mangroves.",
+      thick:"Up to 150 m" },
+    { gap:true, name:"Most of the last 30 million years absent", age:"Late Paleogene to Quaternary", period:null,
+      note:"About 30 million years missing",
+      env:"Southern England was land for most of this time, gently folded by the same squeeze that raised the Alps, and was being eroded rather than buried." },
+    { name:"Glacial till and river gravels", age:"Quaternary", period:"now", lith:"till", m:15,
+      env:"Ice reached the northern edge of London and pushed the Thames south into its present valley, which the river has lined with gravel terraces.",
+      thick:"A few metres to a few tens of metres" }
+  ]
+}
+];

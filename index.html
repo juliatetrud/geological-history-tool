@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Deep Time Globe</title>
+<meta name="description" content="An interactive globe of continental drift from the Cambrian to today, with fossil sites, look-alike places and rock columns.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -38,10 +39,14 @@
         <button class="chip" data-view="0,55">North pole</button>
         <button class="chip" data-view="-30,10">Atlantic</button>
         <button class="chip" data-view="170,0">Pacific</button>
-        <span class="spacer"></span>
-        <button class="chip tog" id="togIce" aria-pressed="true">Ice</button>
-        <button class="chip tog" id="togGrid" aria-pressed="true">Grid</button>
-        <button class="chip tog" id="togSpin" aria-pressed="true">Auto-spin</button>
+        <span class="rule" aria-hidden="true"></span>
+        <button class="chip" id="modeCompare" aria-pressed="false">Comparisons</button>
+        <button class="chip" id="modeLayers" aria-pressed="false">Layers</button>
+        <span class="togs">
+          <button class="chip tog" id="togIce" aria-pressed="true">Ice</button>
+          <button class="chip tog" id="togGrid" aria-pressed="true">Grid</button>
+          <button class="chip tog" id="togSpin" aria-pressed="true">Auto-spin</button>
+        </span>
       </div>
     </div>
 
@@ -80,6 +85,9 @@
     in forest.</p>
     <p>Markers are pinned to their plate, so a fossil site drifts with the ground it sits in. Each one
     describes the place then and what grows there now.</p>
+    <p>Comparisons pairs up places that look alike and sorts them by whether they were once joined.
+    Layers shows two rock columns in the same colours as the timeline; click a layer to see where
+    that ground was when the rock was laid down.</p>
     <div class="legend">
       <span><i style="background:var(--fossil)"></i>Animals and fossil beds</span>
       <span><i style="background:var(--forest)"></i>Plants and forests</span>

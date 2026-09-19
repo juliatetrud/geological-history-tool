@@ -10,6 +10,9 @@ let camTarget = null, camStart = 0, camFrom = null;
 let spinning = !reduced, dragging = false, playing = false, playTimer = null;
 let showIce = true, showGrid = true;
 let selected = null, hint = document.getElementById("globeHint"), hintGone = false;
+let mode = "period";               // period | site | compare | layers
+let highlights = [], pulseStart = 0, seqTimer = null;
+let activeCmp = null, colIdx = 0, activeLayer = null;
 
 function el(tag, attrs, parent){
   const e = document.createElementNS(NS, tag);
@@ -44,6 +47,7 @@ const gEq    = el("path", { fill:"none", stroke:"#7FD0E8", "stroke-opacity":".34
 const gLand  = el("g", { id:"gLand" }, svg);
 const gIce   = el("g", { id:"gIce" }, svg);
 const gMark  = el("g", { id:"gMark" }, svg);
+const gHi    = el("g", { id:"gHi", "pointer-events":"none" }, svg);
 el("circle", { cx:CX, cy:CY, r:R, fill:"url(#shadeG)", "pointer-events":"none" }, svg);
 el("circle", { cx:CX, cy:CY, r:R, fill:"none", stroke:"#8FBDD4", "stroke-opacity":".22",
                "stroke-width":1.2, "pointer-events":"none" }, svg);
@@ -174,6 +178,8 @@ function draw(){
     m.dot.setAttribute("r", sel ? 6 : 4.6);
   }
 
+  drawHighlights(poses);
+
   /* pole pins */
   gPole.textContent = "";
   for (const pole of [[90, "N"], [-90, "S"]]){
@@ -214,6 +220,7 @@ function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
 function renderPeriod(){
   const p = PERIODS[idx];
   selected = null;
+  setMode("period"); clearHighlights();
   panel.innerHTML =
     '<div class="fade">' +
     '<p class="kicker">' + esc(p.span) + '</p>' +
@@ -236,6 +243,7 @@ function renderPeriod(){
 
 function renderSite(n){
   const p = PERIODS[idx], s = p.sites[n];
+  setMode("site"); clearHighlights();
   panel.innerHTML =
     '<div class="fade">' +
     '<button class="back">&larr; ' + esc(p.name) + '</button>' +
@@ -256,10 +264,11 @@ function renderSite(n){
 }
 
 function selectSite(n){
+  cancelSeq();
   selected = n;
   renderSite(n);
   const s = PERIODS[idx].sites[n];
-  const p = currentPose(s.plate);
+  const p = poseOf(s.plate, idx);
   const T = plateTransform(PLATES[s.plate].home, p[0], p[1], p[2]);
   const v = norm(T(vec(s.lon, s.lat)));
   const lon = Math.atan2(v[1], v[0]) / D;
@@ -268,6 +277,432 @@ function selectSite(n){
   camTarget = [lon, Math.max(-72, Math.min(72, lat))];
   hideHint();
 }
+
+/* ===================== highlights and pulses =====================
+   Places picked out by a comparison or a column. They are pinned to a
+   plate like sites, so they drift with it when the period changes.
+   A place with `only` set is drawn in that period alone.                */
+const PULSE_MS = 3300, PULSE_CYCLE = 1100;
+const globeFrame = document.querySelector(".globe-frame");
+const stackedMQ = window.matchMedia("(max-width:900px)");
+
+function periodIndex(id){ return PERIODS.findIndex(p => p.id === id); }
+function periodPhrase(p){ return p.ma === 0 ? "today" : "the " + p.name + ", " + p.ma + " Ma"; }
+function cancelSeq(){ clearTimeout(seqTimer); seqTimer = null; }
+
+function clearHighlights(){
+  cancelSeq();
+  highlights = []; gHi.textContent = ""; activeCmp = null;
+}
+function setHighlights(places){
+  gHi.textContent = "";
+  highlights = places.map(pl => {
+    const g = el("g", { display:"none" }, gHi);
+    const waves = [0, 1].map(() => el("circle", { r:8, fill:"none", stroke:"#FFFFFF",
+                                                  "stroke-width":1.6, opacity:0 }, g));
+    el("circle", { r:8.5, fill:"#07131B", "fill-opacity":".45", stroke:"#FFFFFF",
+                   "stroke-width":1.5 }, g);
+    el("circle", { r:2.6, fill:"#FFFFFF" }, g);
+    const label = el("text", { y:4, fill:"#FFFFFF", "font-size":"12",
+                               "font-family":"IBM Plex Sans, sans-serif", stroke:"#07131B",
+                               "stroke-width":3, "stroke-opacity":".7", "paint-order":"stroke" }, g);
+    label.textContent = pl.short || pl.label;
+    return { g, waves, label, place:pl, pulse:false };
+  });
+  fitLabels();
+}
+/* the globe is drawn in a 620-unit box; on a small screen the labels are
+   enlarged so they stay readable                                          */
+function fitLabels(){
+  const w = svg.getBoundingClientRect().width || 620;
+  const size = Math.round(12 * Math.max(1, Math.min(1.9, 620 / w)));
+  for (const h of highlights) h.label.setAttribute("font-size", size);
+}
+function drawHighlights(poses){
+  if (!highlights.length) return;
+  const age = performance.now() - pulseStart;
+  const live = age >= 0 && age < PULSE_MS;
+  for (const h of highlights){
+    const pl = h.place, p = poses[pl.plate];
+    const T = plateTransform(PLATES[pl.plate].home, p[0], p[1], p[2]);
+    const s = project(T(vec(pl.lon, pl.lat)));
+    const show = s[2] && (!pl.only || pl.only === PERIODS[idx].id);
+    h.g.setAttribute("display", show ? "inline" : "none");
+    if (!show) continue;
+    h.g.setAttribute("transform", "translate(" + s[0].toFixed(1) + "," + s[1].toFixed(1) + ")");
+    const left = s[0] > CX + 110;
+    h.label.setAttribute("x", left ? -13 : 13);
+    h.label.setAttribute("text-anchor", left ? "end" : "start");
+    h.waves.forEach((w, k) => {
+      if (!live || !h.pulse){ w.setAttribute("opacity", 0); return; }
+      if (reduced){ w.setAttribute("r", 14 + k*7); w.setAttribute("opacity", k ? .4 : .8); return; }
+      const t = (age / PULSE_CYCLE + k * .5) % 1;
+      w.setAttribute("r", (8 + 24*t).toFixed(1));
+      w.setAttribute("opacity", ((1 - t) * .9).toFixed(2));
+    });
+  }
+}
+
+/* Switch to period pi if needed, turn the globe to face the given places
+   and pulse them once the plates have arrived.                           */
+function showPlaces(pi, places){
+  const changed = pi !== idx;
+  if (changed) setPeriod(pi);
+  const sum = [0, 0, 0];
+  for (const pl of places){
+    const p = poseOf(pl.plate, pi);
+    const v = norm(plateTransform(PLATES[pl.plate].home, p[0], p[1], p[2])(vec(pl.lon, pl.lat)));
+    sum[0] += v[0]; sum[1] += v[1]; sum[2] += v[2];
+  }
+  const c = norm(sum);
+  const lon = Math.atan2(c[1], c[0]) / D;
+  const lat = Math.asin(Math.max(-1, Math.min(1, c[2]))) / D;
+  camFrom = [viewLon, viewLat]; camStart = performance.now();
+  camTarget = [lon, Math.max(-72, Math.min(72, lat))];
+  for (const h of highlights) h.pulse = places.indexOf(h.place) >= 0;
+  pulseStart = performance.now() + (reduced ? 0 : changed ? 1500 : 700);
+  hideHint();
+}
+function scrollToGlobe(){
+  if (!globeFrame.scrollIntoView) return;
+  const r = globeFrame.getBoundingClientRect();
+  if (r.top < -40 || r.top + r.height * .6 > window.innerHeight)
+    globeFrame.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block:"start" });
+}
+
+/* ===================== panel modes ===================== */
+const modeChips = { compare:document.getElementById("modeCompare"),
+                    layers:document.getElementById("modeLayers") };
+function setMode(m){
+  mode = m;
+  for (const k in modeChips) modeChips[k].setAttribute("aria-pressed", k === m);
+}
+function backButton(){ return '<button class="back">&larr; ' + esc(PERIODS[idx].name) + '</button>'; }
+function refreshMode(){
+  const b = panel.querySelector(".back");
+  if (b) b.innerHTML = "&larr; " + esc(PERIODS[idx].name);
+  if (mode === "layers"){ markCurrentLayers(); revealCurrentLayer(); }
+}
+function enterMode(m){
+  stopPlay(); cancelSeq();
+  if (mode === m){ renderPeriod(); return; }
+  if (m === "compare") renderCompare(); else renderLayers(true);
+  if (stackedMQ.matches && panel.scrollIntoView)
+    panel.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block:"start" });
+}
+modeChips.compare.addEventListener("click", () => enterMode("compare"));
+modeChips.layers.addEventListener("click", () => enterMode("layers"));
+
+/* ---------- look-alikes and relatives ---------- */
+function cmpSteps(c){
+  const steps = [];
+  for (const pl of c.places){
+    const pid = pl.period || c.period;
+    let s = steps.find(x => x.pid === pid);
+    if (!s) steps.push(s = { pid, places:[] });
+    s.places.push(pl);
+  }
+  return steps;
+}
+function renderCompare(){
+  setMode("compare"); selected = null; clearHighlights();
+  panel.innerHTML =
+    '<div class="fade">' + backButton() +
+    '<p class="kicker">Comparisons</p>' +
+    '<h2 class="p-head">Look-alikes and relatives</h2>' +
+    '<p class="p-body">Two places can resemble each other because they used to be one place, ' +
+    'or because the same conditions produced the same result twice. Putting the continents ' +
+    'back where they were is how you tell which.</p>' +
+    COMPARE_GROUPS.map(g =>
+      '<h3 class="grp-title">' + esc(g.title) + '</h3>' +
+      '<p class="grp-sub">' + esc(g.sub) + '</p>' +
+      '<ul class="cmps">' + COMPARISONS.filter(c => c.group === g.id).map(c => {
+        const steps = cmpSteps(c);
+        const when = steps.map(s => periodPhrase(PERIODS[periodIndex(s.pid)])).join(", then ");
+        return '<li class="cmp" data-id="' + c.id + '">' +
+          '<h4 class="cmp-t">' + esc(c.title) + '</h4>' +
+          '<p class="cmp-b">' + esc(c.body) + '</p>' +
+          '<ul class="cmp-places">' + c.places.map((pl, i) =>
+            '<li><button class="place" data-i="' + i + '"><span class="pin"></span>' + esc(pl.label) +
+            (steps.length > 1 ? '<span class="pw"> · ' + esc(PERIODS[periodIndex(pl.period || c.period)].name) + '</span>' : '') +
+            '</button></li>').join("") + '</ul>' +
+          '<div class="cmp-act"><button class="chip go">Show on globe</button>' +
+          '<span class="cmp-when">Shown in ' + esc(when).replace(/^today/, "the present") + '</span></div></li>';
+      }).join("") + '</ul>'
+    ).join("") + '</div>';
+  panel.querySelector(".back").addEventListener("click", renderPeriod);
+  panel.querySelectorAll(".cmp").forEach(li => {
+    const c = COMPARISONS.find(x => x.id === li.dataset.id);
+    li.querySelector(".go").addEventListener("click", () => showComparison(c));
+    li.querySelectorAll(".place").forEach(b =>
+      b.addEventListener("click", () => showComparison(c, c.places[+b.dataset.i])));
+  });
+  panel.scrollTop = 0;
+}
+
+/* Inherited pairs stay marked as the plates move, so stepping through the
+   timeline shows them separating. Convergent pairs are marked only in the
+   period they belong to. With `one`, a single place is shown.            */
+function showComparison(c, one){
+  stopPlay(); cancelSeq();
+  if (activeCmp !== c.id){
+    setHighlights(c.places.map(pl => Object.assign({}, pl,
+      { only: c.group === "convergent" ? (pl.period || c.period) : null })));
+    activeCmp = c.id;
+  }
+  panel.querySelectorAll(".cmp").forEach(li =>
+    li.classList.toggle("active", li.dataset.id === c.id));
+  const live = highlights.map(h => h.place);
+  const steps = one
+    ? [{ pid: one.period || c.period, places:[live[c.places.indexOf(one)]] }]
+    : cmpSteps(c).map(s => ({ pid:s.pid, places:s.places.map(pl => live[c.places.indexOf(pl)]) }));
+  (function run(k){
+    showPlaces(periodIndex(steps[k].pid), steps[k].places);
+    if (k + 1 < steps.length) seqTimer = setTimeout(() => run(k + 1), 5200);
+  })(0);
+  scrollToGlobe();
+}
+
+/* ---------- stratigraphic column ---------- */
+const BASEMENT = "#69757F", LITH_INK = "#0B1017";
+const COL_SCALE = .3, COL_MAXH = 150;      // pixels per metre; cap for very thick units
+let colBuiltW = 0;
+
+function wrapText(str, max){
+  const out = []; let line = "";
+  for (const w of String(str).split(" ")){
+    if (line && (line + " " + w).length > max){ out.push(line); line = w; }
+    else line = line ? line + " " + w : w;
+  }
+  if (line) out.push(line);
+  return out;
+}
+function layerColour(L){
+  return L.period ? PERIODS[periodIndex(L.period)].colour : BASEMENT;
+}
+function wavy(xa, xb, y, amp){
+  const n = Math.max(2, Math.round(Math.abs(xb - xa) / 20)), w = (xb - xa) / n;
+  let d = "";
+  for (let i = 0; i < n; i++){
+    const x = xa + w * i;
+    d += "Q" + (x + w/2).toFixed(1) + " " + (y + (i % 2 ? -2 : 2) * amp).toFixed(1) +
+         " " + (x + w).toFixed(1) + " " + y.toFixed(1);
+  }
+  return d;
+}
+/* lithology hatching: [tile width, tile height, marks] */
+const LITH = {
+  sandstone:  [8, 8,  '<circle cx="2" cy="2" r=".9"/><circle cx="6" cy="6" r=".9"/>'],
+  shale:      [14, 6, '<path d="M1 3h8"/>'],
+  limestone:  [18, 12,'<path d="M0 .5h18M0 6.5h18M4 .5v6M13 6.5v6"/>'],
+  chalk:      [22, 14,'<path d="M0 .5h22M5 .5v5M16 7.5v5" stroke-opacity=".7"/>'],
+  coal:       [14, 16,'<path d="M0 3h14" stroke-width="3.2"/><path d="M1 10h8"/>'],
+  mixed:      [14, 12,'<circle cx="3" cy="3" r=".9"/><circle cx="10" cy="3" r=".9"/><path d="M2 9h8"/>'],
+  crystalline:[16, 16,'<path d="M3 3l3 4M11 2l-3 4M4 12l4-2M12 10l2 4"/>'],
+  till:       [16, 14,'<circle cx="4" cy="4" r="2" fill="none"/><circle cx="12" cy="9" r="1.3" fill="none"/><circle cx="5" cy="11" r=".8"/>']
+};
+function columnWidth(host){
+  return Math.max(250, host.clientWidth ? Math.floor(host.clientWidth) - 2 : 340);
+}
+
+function buildColumn(){
+  const host = document.getElementById("colScroll");
+  if (!host) return;
+  const col = COLUMNS[colIdx];
+  const keep = host.scrollTop, rebuilt = host.firstChild !== null;
+  const W = columnWidth(host);
+  colBuiltW = W;
+  const x0 = 1, colW = W < 330 ? 84 : 112, x1 = x0 + colW, lx = x1 + 18;
+  const maxName = Math.max(12, Math.floor((W - lx - 4) / 6.9));
+  const maxMeta = Math.max(14, Math.floor((W - lx - 4) / 6.1));
+
+  /* measure rows; data runs bottom to top */
+  const rows = col.layers.map(L => {
+    const name = wrapText(L.name, maxName);
+    const meta = wrapText(L.gap || L.marker ? L.note : L.age, maxMeta);
+    const textH = name.length * 15 + meta.length * 13.5;
+    let h, cut = false;
+    if (L.gap || L.marker) h = Math.max(30, textH + 12);
+    else if (L.m == null)  h = Math.max(64, textH + 12);
+    else {
+      h = Math.max(textH + 10, L.m * COL_SCALE);
+      if (h > COL_MAXH){ h = COL_MAXH; cut = true; }
+    }
+    return { L, name, meta, h: Math.round(h), cut };
+  });
+  const H = rows.reduce((a, r) => a + r.h, 0) + 12;
+  let y = H - 2;
+  for (const r of rows){ y -= r.h; r.y = y; }
+
+  let defs = "", body = "";
+  for (const k in LITH)
+    defs += '<pattern id="lith-' + k + '" width="' + LITH[k][0] + '" height="' + LITH[k][1] +
+            '" patternUnits="userSpaceOnUse"><g fill="' + LITH_INK + '" stroke="' + LITH_INK +
+            '" stroke-width="1" stroke-linecap="round">' + LITH[k][2] + '</g></pattern>';
+
+  rows.forEach((r, i) => {
+    const L = r.L, yT = r.y, yB = r.y + r.h, mid = (yT + yB) / 2;
+    let rock = "";
+    if (L.marker){
+      rock = '<path class="rim" d="M' + x0 + ' ' + mid + 'H' + (x1 + 10) + '"/>';
+    } else if (L.gap){
+      rock = '<path class="gap" d="M' + x0 + ' ' + (yT + 5) + wavy(x0, x1, yT + 5, 2.2) +
+             'L' + x1 + ' ' + (yB - 5) + wavy(x1, x0, yB - 5, 2.2) + 'Z"/>';
+    } else {
+      let fill = layerColour(L);
+      if (L.to){
+        defs += '<linearGradient id="lg-' + i + '" x1="0" y1="1" x2="0" y2="0">' +
+                '<stop offset=".15" stop-color="' + fill + '"/><stop offset=".85" stop-color="' +
+                PERIODS[periodIndex(L.to)].colour + '"/></linearGradient>';
+        fill = "url(#lg-" + i + ")";
+      }
+      if (L.patchy){
+        /* channel fills cut into the unit below */
+        let below = BASEMENT;
+        for (let j = i - 1; j >= 0; j--)
+          if (!rows[j].L.gap && !rows[j].L.marker){ below = layerColour(rows[j].L); break; }
+        rock = '<rect class="rock" x="' + x0 + '" y="' + yT + '" width="' + colW + '" height="' + r.h +
+               '" fill="' + below + '"/>';
+        for (const f of [[.06, .40], [.52, .94]]){
+          const a = x0 + colW * f[0], b = x0 + colW * f[1];
+          rock += '<path class="rock chan" d="M' + a.toFixed(1) + ' ' + (yT + 1) + 'H' + b.toFixed(1) +
+                  'Q' + ((a + b) / 2).toFixed(1) + ' ' + (yT + 1 + (r.h - 5) * 2) + ' ' + a.toFixed(1) +
+                  ' ' + (yT + 1) + 'Z" fill="' + fill + '"/>';
+        }
+      } else {
+        rock = '<rect class="rock" x="' + x0 + '" y="' + yT + '" width="' + colW + '" height="' + r.h +
+               '" fill="' + fill + '"/>' +
+               '<rect class="lith" x="' + x0 + '" y="' + yT + '" width="' + colW + '" height="' + r.h +
+               '" fill="url(#lith-' + (LITH[L.lith] ? L.lith : "mixed") + ')"/>';
+      }
+      rock += '<path class="seam" d="M' + x0 + ' ' + yB + 'H' + x1 + '"/>';
+      if (r.cut){
+        const q = colW / 8;
+        rock += '<path class="cut" d="M' + x0 + ' ' + mid + 'h' + (q*3) + 'l' + (q/2) + ' -7l' + q +
+                ' 14l' + (q/2) + ' -7H' + x1 + '"/>';
+      }
+    }
+    const ty = mid - (r.name.length * 15 + r.meta.length * 13.5) / 2 + 11;
+    const text =
+      '<text class="l-name' + (L.gap || L.marker ? " it" : "") + '" x="' + lx + '" y="' + ty.toFixed(1) + '">' +
+      r.name.map((t, k) => '<tspan x="' + lx + '" dy="' + (k ? 15 : 0) + '">' + esc(t) + '</tspan>').join("") +
+      '</text><text class="l-meta" x="' + lx + '" y="' + (ty + r.name.length * 15 - 1.5).toFixed(1) + '">' +
+      r.meta.map((t, k) => '<tspan x="' + lx + '" dy="' + (k ? 13.5 : 0) + '">' + esc(t) + '</tspan>').join("") +
+      '</text>';
+    const tick = L.marker ? "" : '<path class="tick" d="M' + (x1 + 3) + ' ' + mid + 'h10"/>';
+    const label = L.name + ". " + (L.gap || L.marker ? L.note : L.age + ". " + L.thick);
+    body += L.marker
+      ? '<g class="layer-mark">' + rock + text + '</g>'
+      : '<g class="layer' + (L.gap ? " is-gap" : "") + '" data-i="' + i + '" role="button" tabindex="0" aria-label="' +
+        esc(label).replace(/"/g, "&quot;") + '">' + rock + tick + text +
+        '<rect class="frame" x="' + (x0 + .5) + '" y="' + (yT + .5) + '" width="' + (colW - 1) +
+        '" height="' + (r.h - 1) + '"/>' +
+        '<rect class="hit" x="0" y="' + yT + '" width="' + W + '" height="' + r.h + '"/></g>';
+  });
+
+  host.innerHTML = '<svg class="column" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H +
+    '" role="group" aria-label="Stratigraphic column: ' + esc(col.title) + ', oldest at the bottom"><defs>' +
+    defs + '</defs>' + body + '</svg>';
+  host.querySelectorAll(".layer").forEach(g => {
+    const i = +g.dataset.i;
+    g.addEventListener("click", () => selectLayer(i));
+    g.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); selectLayer(i); }
+    });
+  });
+  markCurrentLayers();
+
+  /* open at the current period's layer if there is one, else at the bottom */
+  if (rebuilt) host.scrollTop = keep;
+  else {
+    const cur = rows.find(r => r.L.period === PERIODS[idx].id || r.L.to === PERIODS[idx].id);
+    host.scrollTop = cur ? Math.max(0, cur.y + cur.h / 2 - host.clientHeight / 2) : H;
+  }
+}
+function markCurrentLayers(){
+  const id = PERIODS[idx].id, layers = COLUMNS[colIdx].layers;
+  panel.querySelectorAll(".layer").forEach(g => {
+    const L = layers[+g.dataset.i];
+    g.setAttribute("aria-current", !!L.period && (L.period === id || L.to === id));
+    g.classList.toggle("sel", +g.dataset.i === activeLayer);
+  });
+}
+/* scroll the column, not the page, until the current period's layer shows */
+function revealCurrentLayer(){
+  const host = document.getElementById("colScroll");
+  const hit = host && host.querySelector('.layer[aria-current="true"] .hit');
+  if (!hit) return;
+  const y = +hit.getAttribute("y"), h = +hit.getAttribute("height");
+  if (y < host.scrollTop || y + h > host.scrollTop + host.clientHeight)
+    host.scrollTop = Math.max(0, y + h / 2 - host.clientHeight / 2);
+}
+function showColumnPlace(pi){
+  const c = COLUMNS[colIdx];
+  setHighlights([{ plate:c.plate, lon:c.lon, lat:c.lat, short:c.short, only:null }]);
+  showPlaces(pi, [highlights[0].place]);
+}
+
+function renderLayerCard(){
+  const card = document.getElementById("layerCard");
+  const L = activeLayer == null ? null : COLUMNS[colIdx].layers[activeLayer];
+  if (!L){
+    card.innerHTML = '<p class="lc-empty">Click a layer. The globe moves to that period and marks ' +
+      'where the column stands. Layer colours match the timeline below the globe.</p>';
+    return;
+  }
+  const p = L.period ? PERIODS[periodIndex(L.period)] : null;
+  card.innerHTML =
+    '<p class="kicker">' + esc(L.age) + '</p>' +
+    '<h3 class="lc-name">' + esc(L.name) + '</h3>' +
+    '<p class="lc-env">' + esc(L.env) + '</p>' +
+    '<p class="lc-thick">' + esc(L.gap ? L.note : L.thick) + '</p>' +
+    '<div class="cmp-act"><button class="chip go">Show on globe</button><span class="cmp-when">' +
+    (p ? "Globe set to " + esc(periodPhrase(p)) : "Outside this timeline; the globe stays where it is") +
+    '</span></div>';
+  card.querySelector(".go").addEventListener("click", () => { selectLayer(activeLayer); scrollToGlobe(); });
+}
+function selectLayer(i){
+  stopPlay(); cancelSeq();
+  const L = COLUMNS[colIdx].layers[i];
+  activeLayer = i;
+  renderLayerCard();
+  showColumnPlace(L.period ? periodIndex(L.period) : idx);
+  markCurrentLayers();
+}
+
+function renderLayers(locate){
+  setMode("layers"); selected = null; clearHighlights();
+  const col = COLUMNS[colIdx];
+  panel.innerHTML =
+    '<div class="fade">' + backButton() +
+    '<p class="kicker">Layers</p>' +
+    '<h2 class="p-head">' + esc(col.title) + '</h2>' +
+    '<p class="p-sub">' + esc(col.where) + '</p>' +
+    '<p class="p-body">' + esc(col.intro) + '</p>' +
+    '<div class="col-switch" role="group" aria-label="Choose a column">' +
+    COLUMNS.map((c, k) => '<button class="chip" data-k="' + k + '" aria-pressed="' + (k === colIdx) + '">' +
+      esc(c.short) + '</button>').join("") + '</div>' +
+    '<div class="layer-card" id="layerCard" aria-live="polite"></div>' +
+    '<div class="col-scroll" id="colScroll" tabindex="0" aria-label="Stratigraphic column, scrollable"></div>' +
+    '<p class="col-note"><span class="scalebar" style="height:' + (100 * COL_SCALE) + 'px"></span>' +
+    '<span>The bar is 100 m of rock. Oldest at the bottom. Thin layers are drawn at a legible minimum, ' +
+    'the thickest are cut short with a zigzag, and wavy breaks are unconformities: time with no rock ' +
+    'to show for it.</span></p></div>';
+  panel.querySelector(".back").addEventListener("click", renderPeriod);
+  panel.querySelectorAll(".col-switch .chip").forEach(b => b.addEventListener("click", () => {
+    if (+b.dataset.k === colIdx) return;
+    colIdx = +b.dataset.k; activeLayer = null; renderLayers(true);
+  }));
+  renderLayerCard();
+  buildColumn();
+  if (locate) showColumnPlace(idx);
+  panel.scrollTop = 0;
+}
+window.addEventListener("resize", () => {
+  fitLabels();
+  const host = document.getElementById("colScroll");
+  if (mode === "layers" && host && Math.abs(columnWidth(host) - colBuiltW) > 8) buildColumn();
+});
 
 /* ===================== period switching ===================== */
 function setPeriod(next, instant){
@@ -282,7 +717,8 @@ function setPeriod(next, instant){
   document.querySelectorAll(".seg").forEach((b, i) =>
     b.setAttribute("aria-current", i === idx ? "true" : "false"));
   buildPeriod();
-  renderPeriod();
+  if (mode === "compare" || mode === "layers"){ selected = null; refreshMode(); }
+  else renderPeriod();
   if (p.view && !camTarget){
     camFrom = [viewLon, viewLat]; camStart = performance.now();
     camTarget = [p.view[0], p.view[1]];
@@ -298,7 +734,7 @@ PERIODS.forEach((p, i) => {
   b.innerHTML = '<span class="bar" style="background:' + p.colour + '"></span>' +
                 '<span class="lab">' + p.name +
                 '<span class="ma">' + (p.ma === 0 ? "now" : p.ma + " Ma") + '</span></span>';
-  b.addEventListener("click", () => { stopPlay(); setPeriod(i); });
+  b.addEventListener("click", () => { stopPlay(); cancelSeq(); setPeriod(i); });
   ribbon.appendChild(b);
 });
 
@@ -310,6 +746,7 @@ function stopPlay(){
 }
 playBtn.addEventListener("click", () => {
   if (playing){ stopPlay(); return; }
+  cancelSeq();
   playing = true; playLabel.textContent = "Pause";
   if (idx === PERIODS.length - 1) setPeriod(0);
   playTimer = setInterval(() => {
@@ -332,6 +769,7 @@ function toggle(id, get, set){
 toggle("togIce",  () => showIce,  v => showIce = v);
 toggle("togGrid", () => showGrid, v => showGrid = v);
 toggle("togSpin", () => spinning, v => spinning = v);
+document.getElementById("togSpin").setAttribute("aria-pressed", spinning);
 
 /* drag to rotate */
 let px = 0, py = 0;
