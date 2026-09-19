@@ -6,11 +6,11 @@
 
 const PERIODS = [
 {
-  id:"cam", name:"Cambrian", ma:510, span:"538–485 million years ago",
+  id:"cam", name:"Cambrian", ma:510, span:"539–487 million years ago",
   colour:"#7FA056", accent:"#9CBE72", view:[-30,-12],
   headline:"Gondwana is still being welded together",
   body:[
-    "From 538 to 485 million years ago the continents sit scattered across the southern half of the globe. The rock that is now North America (Laurentia) lies on the equator, turned a quarter turn from the way it faces today, while Africa, South America, India, Australia and Antarctica are being welded into Gondwana.",
+    "From 539 to 487 million years ago the continents sit scattered across the southern half of the globe. The rock that is now North America (Laurentia) lies on the equator, turned a quarter turn from the way it faces today, while Africa, South America, India, Australia and Antarctica are being welded into Gondwana.",
     "Warm shallow seas cover most continental interiors, and animals with hard parts have just appeared in them. The land above is bare rock and sand. It carries no plants and nothing taller than a bacterial crust."
   ],
   facts:[
@@ -20,6 +20,7 @@ const PERIODS = [
     ["Land plants","None"]
   ],
   strata:"Beach sandstone, then shale, then limestone, stacked as seas advanced across bare continents; the Tapeats, Bright Angel and Muav at the bottom of the Grand Canyon are the standard example.",
+  sources:[279,283,284,412,413,414,438,445,446,447,458],
     plates:{ NAM:[27.9,-2,34.2], EUR:[66.3,-54.7,19.9], SIB:[-50.7,14,68], CHI:[576.7,-10,75.1],
            IND:[187.9,-40.8,-28.4], AFR:[240.2,-77.7,58.7], SAM:[-81.5,-46.9,86.4],
            AUS:[187.2,-13.2,-89.6], ANT:[-140.7,-32.7,41.1], MAD:[189.1,-52.1,20.2] },
@@ -63,20 +64,21 @@ const PERIODS = [
   ]
 },
 {
-  id:"ord", name:"Ordovician", ma:445, span:"485–443 million years ago",
+  id:"ord", name:"Ordovician", ma:445, span:"487–443 million years ago",
   colour:"#009270", accent:"#2BB894", view:[-20,-40],
   headline:"An ice sheet grows over the Sahara",
   body:[
-    "From 485 to 443 million years ago Gondwana drifts across the South Pole, and the part sitting on the pole is the rock that is now the central Sahara. An ice sheet spreads over what will become Algeria, Libya, Mauritania and Niger, and the grooves its base cut into the bedrock still show in the desert.",
-    "The ice locks up seawater and sea level falls. The shallow seas drain off the continents and about 85 percent of marine species die, the first of the five great mass extinctions. On land the first plants, liverwort-like and only millimetres tall, take hold in damp ground."
+    "From 487 to 443 million years ago Gondwana drifts across the South Pole, and the part sitting on the pole is the rock that is now the central Sahara. An ice sheet spreads over what will become Algeria, Libya, Mauritania and Niger, and the grooves its base cut into the bedrock still show in the desert.",
+    "The ice locks up seawater and sea level falls. The shallow seas drain off the continents and about 85 percent of marine species die, the first of the five great mass extinctions. On land the first plants, liverwort-like and known only from their spores, take hold in damp ground."
   ],
   facts:[
     ["North pole","Open ocean"],
     ["South pole","Under what is now the central Sahara"],
     ["Ice","A continental ice sheet across northwest Gondwana"],
-    ["Land plants","Millimetre-scale, liverwort-like, in wet ground only"]
+    ["Land plants","Liverwort-like, known only from spores and fragments"]
   ],
   strata:"Shelly limestone across the flooded tropics, as around Cincinnati and the Baltic coast of Estonia, and glacial tillite across North Africa at the end of the period.",
+  sources:[279,283,284,292,302,412,413,414,415,438,448],
     plates:{ NAM:[-71.5,-8.1,-11.9], EUR:[-14.9,-48.4,11.9], SIB:[-78.8,16,72],
            CHI:[512.4,-13.6,28], IND:[206.5,-31,32], AFR:[232.8,-71.1,122.3],
            SAM:[-72.4,-47.9,125.7], AUS:[206.7,-3.4,-67.6], ANT:[-124.4,-25.2,99.7],
@@ -114,20 +116,21 @@ const PERIODS = [
   ]
 },
 {
-  id:"sil", name:"Silurian", ma:425, span:"443–419 million years ago",
+  id:"sil", name:"Silurian", ma:425, span:"443–420 million years ago",
   colour:"#B3E1B6", accent:"#B3E1B6", view:[-10,-20],
   headline:"Plants get stems, and continents start to collide",
   body:[
-    "From 443 to 419 million years ago the rock that is now northern Europe (Baltica) closes on North America, and the Iapetus Ocean between them narrows. The collision pushes up the Caledonian mountains along what will become Scotland, Norway and eastern Greenland.",
+    "From 443 to 420 million years ago the rock that is now northern Europe (Baltica) closes on North America, and the Iapetus Ocean between them narrows. The collision pushes up the Caledonian mountains along what will become Scotland, Norway and eastern Greenland.",
     "With the ice gone, sea level rises and reefs rebuild across the tropics. On land Cooksonia appears, a leafless forking stem a few centimetres tall and the first plant with internal plumbing for water. The first fish with jaws swim offshore, and millipedes and early arachnids have left the water."
   ],
   facts:[
     ["North pole","Open ocean"],
-    ["South pole","Over Gondwana, near what is now southern Africa"],
+    ["South pole","Over Gondwana, near what is now West Africa and north-eastern Brazil"],
     ["Mountains rising","The Caledonides, along the closing Iapetus suture"],
     ["Tallest plant","A few centimetres"]
   ],
   strata:"Reef limestone and dolomite in the tropics: Wenlock Edge in England, the island of Gotland in Sweden, and the cap rock of Niagara Falls.",
+  sources:[128,131,279,283,284,359,412,413,414,416,438,449,450,456,457],
     plates:{ NAM:[-38.9,-13,-18.8], EUR:[10.4,-34.4,28.4], SIB:[-63.9,22,62], CHI:[358.8,-16,38],
            IND:[199.7,-37.7,0.7], AFR:[237.3,-76.9,95], SAM:[-71.5,-48.9,108.4],
            AUS:[200.2,-10.1,-73.3], ANT:[-129.3,-31.1,77.4], MAD:[200,-49.1,72.7] },
@@ -157,20 +160,21 @@ const PERIODS = [
   ]
 },
 {
-  id:"dev", name:"Devonian", ma:385, span:"419–359 million years ago",
+  id:"dev", name:"Devonian", ma:385, span:"420–359 million years ago",
   colour:"#CB8C37", accent:"#DFA359", view:[-15,-8],
   headline:"Forests appear, and fish start walking",
   body:[
-    "From 419 to 359 million years ago North America and northern Europe ride together as one continent, Laurussia, straddling the equator. Its hot, dry interior fills with rust-red sand, the Old Red Sandstone that much of Britain, Norway and the Catskills is built from.",
-    "Plants grow wood and roots, and by the end of the period forests stand thirty metres tall, the height of a ten-storey building. Roots break rock into soil, and the nutrients that wash off it feed algal blooms that strip oxygen from the sea and help drive a mass extinction. In the shallows, lobe-finned fish with wrists and ribs prop themselves up among the weeds."
+    "From 420 to 359 million years ago North America and northern Europe ride together as one continent, Laurussia, lying between the equator and about 35 degrees south. Its hot, dry interior fills with rust-red sand, the Old Red Sandstone found across parts of Britain, Norway and the Catskills.",
+    "Plants grow wood and roots, and by the end of the period the first forests stand. Roots break rock into soil, and the nutrients that wash off it feed algal blooms that strip oxygen from the sea and help drive a mass extinction. In the shallows, lobe-finned fish with wrists and ribs prop themselves up among the weeds."
   ],
   facts:[
     ["North pole","Open ocean"],
-    ["South pole","Over Gondwana, near what is now Argentina and southern Africa"],
+    ["South pole","Over Gondwana, near what is now southern Brazil and Angola"],
     ["New that period","Wood, roots, seeds, soil and forests"],
     ["Atmosphere","Carbon dioxide falling steeply as forests spread"]
   ],
-  strata:"Red desert sandstone across Laurussia, seen as the Old Red Sandstone of Britain and Norway and the Catskill Delta of New York, with reef limestone offshore.",
+  strata:"Red river, lake and dune sandstone across Laurussia, seen as the Old Red Sandstone of Britain and Norway and the Catskill Delta of New York, with reef limestone offshore.",
+  sources:[9,279,283,284,412,413,414,417,418,419,420,450,456],
     plates:{ NAM:[6.2,1,33.2], EUR:[41.8,-16.3,-9], SIB:[62.8,28,40], CHI:[225.3,-14,34],
            IND:[185.6,-47,-28.6], AFR:[116.2,-88.7,9], SAM:[-61.7,-57.1,53],
            AUS:[192.7,-20,-92.2], ANT:[-136.6,-44.5,3.3], MAD:[180.9,-58.1,-20] },
@@ -211,16 +215,17 @@ const PERIODS = [
   colour:"#67A599", accent:"#7FBFB2", view:[-5,-14],
   headline:"Coal swamps on the equator, ice at the pole",
   body:[
-    "From 359 to 299 million years ago Laurussia sits on the equator while Gondwana slides over the South Pole. The planet runs hot and wet at the equator, and an ice sheet that will last some seventy million years grows in the south.",
-    "The equatorial forest is lycopsid trees up to fifty metres tall, with green bark and shallow forked anchors in place of roots. They fall into stagnant water and pile up as peat, which is now the coal under the eastern United States, Britain, Belgium, Germany and Poland. Oxygen reaches about 30 percent of the atmosphere, against 21 percent today, and insects grow very large."
+    "From 359 to 299 million years ago Laurussia sits on the equator while Gondwana slides over the South Pole. The planet runs hot and wet at the equator, and ice sheets that will come and go for some seventy million years grow in the south.",
+    "The equatorial forest is lycopsid trees more than thirty-five metres tall, with green bark and shallow forked anchors in place of roots. They fall into stagnant water and pile up as peat, which is now the coal under the eastern United States, Britain, Belgium, Germany and Poland. Oxygen climbs past 25 percent of the atmosphere, against 21 percent today, and insects grow very large."
   ],
   facts:[
     ["North pole","Open ocean"],
     ["South pole","Over southern Gondwana, under a long-lived ice sheet"],
-    ["Oxygen","Around 30 percent, the highest in Earth's history"],
+    ["Oxygen","Above 25 percent and still rising; the all-time peak comes in the Permian"],
     ["Largest insect","Meganeura, a dragonfly relative with a 70 cm wingspan"]
   ],
   strata:"Coal cyclothems across the equatorial belt, from Pennsylvania through Britain to the Donets Basin, resting on shallow-sea limestone such as the Redwall of the Grand Canyon; glacial tillite in the south.",
+  sources:[20,21,222,279,283,284,298,307,412,413,414,421,422,423,424,451,458],
     plates:{ NAM:[-10.7,14.4,8], EUR:[29.1,9.1,-16.3], SIB:[128.2,34.3,35.1], CHI:[240,0.4,8],
            IND:[52.4,-64.7,28.3], AFR:[2.4,-34.4,17.5], SAM:[-38.6,-31.9,2.5],
            AUS:[121.6,-65.6,-83.3], ANT:[-30,-78.2,-24], MAD:[34.1,-57.4,1.2] },
@@ -274,7 +279,7 @@ const PERIODS = [
   headline:"One continent, from pole to pole",
   body:[
     "From 299 to 252 million years ago nearly all the land is joined in one continent, Pangaea, and you could walk from the north of Siberia to the south of Antarctica without crossing salt water. Only the Chinese blocks stand apart, out in the Tethys Ocean.",
-    "Monsoon rain never reaches the middle of a continent that size, and the interior holds sand seas thousands of kilometres across, preserved today as the red sandstones of the American southwest and northern Europe. In the south, Glossopteris forests cover Gondwana to within a few degrees of the pole. At the end of the period the Siberian Traps erupt, and 80 to 90 percent of all species disappear."
+    "Monsoon rain never reaches the middle of a continent that size, and deserts spread over much of it, preserved today as the dune sandstones of the American southwest and northern Europe. In the south, Glossopteris forests cover Gondwana to within a few degrees of the pole. At the end of the period the Siberian Traps erupt, and 80 to 90 percent of species in the sea, and about three quarters of those on land, disappear."
   ],
   facts:[
     ["North pole","Open ocean"],
@@ -282,7 +287,8 @@ const PERIODS = [
     ["Climate","A supercontinental monsoon with a vast dead-dry interior"],
     ["Ending","The largest mass extinction known, 252 million years ago"]
   ],
-  strata:"Red dune sandstone and thick salt across Pangaea's interior, including the Coconino of Arizona, the Rotliegend of Germany and the Zechstein salt under the North Sea, with Glossopteris coal in the south.",
+  strata:"Dune sandstone and thick salt across Pangaea's dry belt, including the Coconino of Arizona, the Rotliegend of Germany and the Zechstein salt under the North Sea, with Glossopteris coal in the south.",
+  sources:[228,237,279,283,284,349,412,413,414,425,426,427,452],
     plates:{ NAM:[-23.1,19.3,0], EUR:[19,26.1,-13.8], SIB:[18.5,66.2,7.5], CHI:[283.7,2,39],
            IND:[48.1,-49.5,32.1], AFR:[3.3,-24.9,5.6], SAM:[-35,-32.2,-18.6],
            AUS:[93.5,-56.2,-85.3], ANT:[13.8,-70.4,-42.1], MAD:[34.5,-43.1,-7.6] },
@@ -336,15 +342,16 @@ const PERIODS = [
   headline:"Life rebuilds, and the first dinosaurs appear",
   body:[
     "From 252 to 201 million years ago Pangaea is still whole, and it has begun to pull apart along the line that will become the Atlantic. Rift valleys open through what is now the Connecticut Valley, New Jersey and Morocco, and they fill first with lakes and then with lava.",
-    "No ice lies at either pole and no grass grows anywhere; conifers, cycads, ginkgos and ferns make up the vegetation. Life takes several million years to recover from the end-Permian extinction, and the groups that emerge are new, among them the first turtles, mammals and pterosaurs. The first dinosaurs appear partway through, in what is now Argentina, and stay a minor group for the rest of the period."
+    "No ice lies at either pole and no grass grows anywhere; conifers, cycads, ginkgos and ferns make up the vegetation. The groups that emerge after the end-Permian extinction are new, among them the first turtles, mammals and pterosaurs. The oldest undisputed dinosaurs appear partway through, in what is now Argentina, and stay a minor group for the rest of the period."
   ],
   facts:[
-    ["North pole","Open ocean"],
+    ["North pole","At or near the north-eastern corner of Siberia"],
     ["South pole","Ocean off Antarctica, with no ice sheet"],
     ["First appearing","Dinosaurs, mammals, pterosaurs, turtles, crocodile ancestors"],
     ["Ending","Extinction at 201 Ma as Pangaea's rifts erupt"]
   ],
   strata:"More red beds: river, lake and salt-flat deposits such as the Moenkopi and Chinle of Arizona, the Buntsandstein of Germany and the Mercia Mudstone of England.",
+  sources:[145,258,267,279,283,284,351,412,413,414,428,429,430,431,432,459],
     plates:{ NAM:[-31.5,24,-27.7], EUR:[8,28.1,19.9], SIB:[45.2,59.1,29.8], CHI:[205,12,24],
            IND:[48.6,-50.2,34.9], AFR:[4.1,-24.9,8], SAM:[-34.2,-31.6,-15.2],
            AUS:[94.7,-57.1,-80.5], ANT:[12.5,-70.5,-35.8], MAD:[35,-43.6,-3.4] },
@@ -393,20 +400,21 @@ const PERIODS = [
   ]
 },
 {
-  id:"jur", name:"Jurassic", ma:155, span:"201–145 million years ago",
+  id:"jur", name:"Jurassic", ma:155, span:"201–143 million years ago",
   colour:"#34B2C9", accent:"#4FC6DC", view:[-15,10],
   headline:"Pangaea splits into Laurasia and Gondwana",
   body:[
-    "From 201 to 145 million years ago a seaway pushes east from the young Central Atlantic, joins the Tethys and cuts Pangaea in two. North America, Europe and Asia form Laurasia in the north, and South America, Africa, India, Australia and Antarctica form Gondwana in the south. This is the only interval when both names apply at once.",
-    "Sea level is high and warm shallow seas cover much of Europe, while sauropods reach their largest sizes and the first birds appear. No grass or flower exists yet: ferns cover the ground, and the canopy is conifer, cycad and ginkgo."
+    "From 201 to 143 million years ago a seaway pushes east from the young Central Atlantic, joins the Tethys and cuts Pangaea in two. North America, Europe and Asia form Laurasia in the north, and South America, Africa, India, Australia and Antarctica form Gondwana in the south.",
+    "Sea level is high and warm shallow seas cover much of Europe, while sauropods grow to giant size and the first birds appear. No grass or flower exists yet: ferns cover the ground, and the canopy is conifer, cycad and ginkgo."
   ],
   facts:[
     ["North pole","Open ocean, ice-free"],
-    ["South pole","Over Antarctica, forested, no ice sheet"],
+    ["South pole","At Gondwana's Pacific edge, where New Zealand then lay against Antarctica and Australia; no ice sheet"],
     ["Laurasia","North America, Europe, Asia"],
     ["Gondwana","South America, Africa, India, Australia, Antarctica"]
   ],
   strata:"Marine clay and limestone over flooded Europe, seen in the Blue Lias and Portland stone of Dorset, and dune sandstone followed by river mud in the American west, the Navajo and the Morrison.",
+  sources:[205,279,283,284,390,393,412,413,414,427,433,434,453,459,460],
     plates:{ NAM:[-31.6,41.5,-15.6], EUR:[7.2,32.6,-35], SIB:[-26.8,67.5,-7.8], CHI:[103,20,18],
            IND:[50.2,-46.1,49.2], AFR:[10.2,-19,14.2], SAM:[-26.1,-26.8,-10.7],
            AUS:[91.9,-57.1,-62.5], ANT:[16.2,-64.8,-18.1], MAD:[38.5,-38.7,10.8] },
@@ -450,20 +458,21 @@ const PERIODS = [
   ]
 },
 {
-  id:"cre", name:"Cretaceous", ma:90, span:"145–66 million years ago",
+  id:"cre", name:"Cretaceous", ma:90, span:"143–66 million years ago",
   colour:"#7FC64E", accent:"#95D468", view:[-30,15],
   headline:"Flowers spread, and the sea cuts North America in half",
   body:[
-    "From 145 to 66 million years ago Gondwana comes apart. South America separates from Africa and the South Atlantic opens from the south upward like a zip, while India breaks away and moves north faster than any large plate before or since, leaving Madagascar behind.",
-    "Sea level is the highest of the last 500 million years, and a seaway from the Arctic to the Gulf of Mexico splits North America into two islands. Chalk, the compacted skeletons of microscopic algae, settles across Europe and the American interior. Flowering plants appear early in the period and dominate by its end."
+    "From 143 to 66 million years ago Gondwana comes apart. South America separates from Africa and the South Atlantic opens from the south upward like a zip, while India breaks away and moves north at up to 18 to 20 centimetres a year, several times the pace of Africa or Australia, leaving Madagascar behind.",
+    "Sea level is among the highest of the last 500 million years, and a seaway from the Arctic to the Gulf of Mexico splits North America into two islands. Chalk, the compacted skeletons of microscopic algae, settles across Europe and the American interior. Flowering plants appear early in the period and dominate by its end."
   ],
   facts:[
     ["North pole","Open ocean, ice-free; forested land nearby"],
     ["South pole","Over Antarctica, forested, no ice sheet"],
-    ["Sea level","Up to 250 m above today's"],
+    ["Sea level","Estimates range from about 100 to 250 m above today's"],
     ["Ending","Asteroid impact at Chicxulub, 66 million years ago"]
   ],
   strata:"Chalk over drowned continents, at Dover and in the Niobrara of Kansas, with dark marine shale such as the Mancos along the interior seaway.",
+  sources:[279,283,284,352,412,413,414,434,435,436,437,438,439,440,454,459,461,463],
     plates:{ NAM:[-76.8,53.1,1.8], EUR:[22.1,47.2,-4.5], SIB:[91,62.7,-4.7],
            CHI:[111.5,30.4,11.6], IND:[47.5,-34.4,73.8], AFR:[10,-23.1,12.3],
            SAM:[-38.5,-28.3,-31.4], AUS:[96.1,-51.9,-44.7], ANT:[28.4,-67.6,5.3],
@@ -512,16 +521,17 @@ const PERIODS = [
   colour:"#FD9A52", accent:"#FDA86C", view:[-20,35],
   headline:"A hot planet with forests at both poles",
   body:[
-    "From 66 to 23 million years ago Greenland separates from Europe and the North Atlantic opens between them. The lava that erupted along the tear is now Skye, Mull, the Giant's Causeway and the Faroe Islands. India reaches Asia and the Himalaya starts to rise; weathering of the new mountains will pull carbon dioxide out of the air and help cool the planet over the following tens of millions of years.",
+    "From 66 to 23 million years ago Greenland separates from Europe and the North Atlantic opens between them. The lava that erupted along the tear is now Skye, Mull, the Giant's Causeway and the Faroe Islands. India reaches Asia and the Himalaya starts to rise.",
     "The climate is the warmest sustained interval since the dinosaurs, with no permanent ice anywhere and forests at both poles. Mammals spread into the space that the dinosaurs other than birds left empty."
   ],
   facts:[
-    ["North pole","Ocean at roughly 23°C in summer, no sea ice"],
+    ["North pole","Ocean surface briefly above 23°C about 55 million years ago, no sea ice"],
     ["South pole","Over Antarctica, still forested, glaciation from 34 Ma"],
     ["Climate","Warmest sustained interval since the dinosaurs"],
     ["Collision","India meets Asia; the Himalaya begins"]
   ],
   strata:"Marine clay and sand around the North Sea, such as the London Clay, and lake beds in the American west: the Green River shales and the pink Claron limestone of Bryce Canyon.",
+  sources:[279,283,284,299,300,310,353,389,412,413,414,435,441,443,455,462],
     plates:{ NAM:[-91.1,47.8,-1.9], EUR:[20.5,51,-3.2], SIB:[96.8,64.4,-1], CHI:[109,26,3.5],
            IND:[71,5.9,-29.1], AFR:[13,-4.2,-8.6], SAM:[-47,-26,6.6], AUS:[121,-48,-7.9],
            ANT:[0.9,-83,0.4], MAD:[41,-28,0] },
@@ -570,7 +580,7 @@ const PERIODS = [
   headline:"The pieces, and where they ended up",
   body:[
     "Antarctica sits on the South Pole under an ice sheet up to 4.8 kilometres thick, and the Arctic is an ocean with a floating lid of ice. Ice at both poles is unusual: for most of the last 500 million years the Earth had ice at neither.",
-    "The Atlantic is still opening at about 2.5 centimetres a year, roughly the rate a fingernail grows, while Africa pushes into Europe and India drives into Asia. Gondwana still shows in the living world. Southern beech, araucarian conifers and podocarps grow in Chile, New Zealand, Tasmania and New Guinea because the land they grew on split apart beneath them."
+    "The Atlantic is still opening at about 2.5 centimetres a year, a little slower than a fingernail grows, while Africa pushes into Europe and India drives into Asia. Gondwana still shows in the living world: southern beech, araucarian conifers and podocarps grow in Chile, New Zealand, Tasmania and New Guinea, on land that was once joined. Some arrived later over water: the southern beeches of New Zealand crossed the Tasman Sea after it had opened."
   ],
   facts:[
     ["North pole","Ocean, covered by drifting sea ice"],
@@ -579,6 +589,7 @@ const PERIODS = [
     ["Still moving","Atlantic widening; Himalaya and Alps rising"]
   ],
   strata:"Glacial till, river gravel, peat and windblown loess on land, and fine ooze on the deep sea floor; most of it is loose sediment that has not yet hardened into rock.",
+  sources:[308,370,376,412,414,442,443,444],
     plates:{ NAM:[-95,50,0], EUR:[15,52,0], SIB:[105,65,0], CHI:[108,28,0], IND:[79,20,0],
            AFR:[18,2,0], SAM:[-60,-20,0], AUS:[134,-25,0], ANT:[0,-83,0], MAD:[47,-19,0] },
   ice:[{ plate:"ANT", lon:0, lat:-90, r:22 }],
