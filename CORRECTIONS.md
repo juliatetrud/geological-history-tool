@@ -552,7 +552,21 @@ These were checked but could not be settled, because the research ran out of its
 - **Several shallow seas and ocean names.** About ten entries in SEAS, and the periods in which Rheic, Paleo-Tethys, Tethys and Panthalassa are used, were not reached before the search budget ran out.
 - **Most descriptions of what a place is like today.** Vegetation, rainfall and elevation details for a dozen sites could not be traced to a survey, museum or park service page.
 
-## Known tension
+## Known tensions
 
-At the tool's Silurian moment of 425 million years ago, Cocks and Torsvik 2005 show Laurentia and Baltica already joined as Laurussia with the Iapetus closed, while the tool still draws a gap between them and labels them separately. The plate poses were solved and checked numerically before this pass and were left alone, so the labels were left to match them. Changing one without the other would be worse than leaving both.
+Places where the text and the globe's own geometry disagree, and the geometry was left alone.
+The plate poses were solved and checked numerically before this pass, so correcting the text
+against a published reconstruction can pull it away from where the tool actually draws the
+marker. The README already says positions are schematic, and more so before 200 Ma.
+
+**Rhynie sits at 25 degrees south in the text and 9 degrees south on the globe.** Wellman 2018
+places the Rhynie chert at about 25 degrees south, and the site text was corrected to match.
+The tool's Devonian poses plot Aberdeenshire at about 9 degrees south, and southern England at
+about 16. The gap is wider than the ten degrees this pass treated as agreement. The arid patch
+over Britain is unaffected and reads correctly either way: at 25 degrees south the belt model
+would call that ground desert on its own, and at 9 degrees south it would call it tropical
+forest, which is exactly the case the patch exists to override.
+
+
+**The Silurian labels.** At the tool's Silurian moment of 425 million years ago, Cocks and Torsvik 2005 show Laurentia and Baltica already joined as Laurussia with the Iapetus closed, while the tool still draws a gap between them and labels them separately. The plate poses were solved and checked numerically before this pass and were left alone, so the labels were left to match them. Changing one without the other would be worse than leaving both.
 

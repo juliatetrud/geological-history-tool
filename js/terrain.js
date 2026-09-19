@@ -68,7 +68,7 @@ const ARID_OVERRIDES = {
   ],
   dev: [
     { plate:"EUR", name:"Old Red Sandstone continent, Britain",
-      source:"Old Red Sandstone: red river and dune sandstones with calcrete soils",
+      source:"Old Red Sandstone: red river, lake and dune sandstones; Rhynie at about 25 degrees south, arid to semi-arid",
       pts:[[-7,50],[-2,50.5],[1.5,52],[-1,58.5],[-5.5,58.5],[-7,55],[-10,54],[-9,51]] },
     { plate:"EUR", name:"Old Red Sandstone continent, Scandinavia",
       source:"Old Red Sandstone basins of western Norway and the Baltic",
