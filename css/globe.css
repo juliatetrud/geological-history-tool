@@ -311,6 +311,19 @@ footer.foot{
   font-size:12px; color:var(--text-faint); max-width:78ch;
 }
 
+/* ---------- labels on the globe ---------- */
+.glabel text{
+  font-family:var(--ui); dominant-baseline:central;
+  paint-order:stroke; stroke:#07131B; stroke-width:3px; stroke-opacity:.62; stroke-linejoin:round;
+}
+.glabel.land text{fill:#FFFFFF; font-weight:500; letter-spacing:.16em; text-anchor:middle;}
+.glabel.ocean text{
+  font-family:var(--display); font-style:italic; fill:#A9D3E6; text-anchor:middle;
+  stroke-opacity:.35;
+}
+.glabel.mark text{fill:#F4F7F9;}
+.glabel.mark path, .glabel.mark circle{paint-order:stroke;}
+
 /* ---------- mode chips ---------- */
 .views .rule{width:1px; align-self:stretch; background:var(--line); margin:0 3px;}
 

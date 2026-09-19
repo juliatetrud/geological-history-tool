@@ -869,3 +869,104 @@ const COLUMNS = [
   ]
 }
 ];
+
+/* ===================== labels on the globe =====================
+   LANDMARKS are modern features pinned to a plate at their modern lon/lat.
+   In a past period each is labelled with what that ground is now ("now the
+   Appalachian Mts."); today it carries its plain name. `name` is written so
+   that it reads after the word "now". Order is priority: when labels would
+   overlap, earlier entries win, and the first ten are always placed first.
+     kind: mountain | forest | desert | ice | region
+
+   PERIOD_LABELS are the names of the time itself:
+     lands  - what a continent was called then, pinned to a plate
+     oceans - fixed at [lon, lat] for that period; the smoke test checks
+              that each one sits over open water                            */
+
+const LANDMARKS = [
+  { plate:"NAM", lon:-80,   lat:37.5, kind:"mountain", name:"the Appalachian Mts." },
+  { plate:"SAM", lon:-62,   lat:-5,   kind:"forest",   name:"the Amazon rainforest" },
+  { plate:"IND", lon:84,    lat:28,   kind:"mountain", name:"the Himalaya" },
+  { plate:"AFR", lon:21,    lat:0,    kind:"forest",   name:"the Congo rainforest" },
+  { plate:"AFR", lon:10,    lat:23,   kind:"desert",   name:"the Sahara" },
+  { plate:"SAM", lon:-69,   lat:-19,  kind:"mountain", name:"the Andes" },
+  { plate:"NAM", lon:-112,  lat:46,   kind:"mountain", name:"the Rocky Mts." },
+  { plate:"SIB", lon:100,   lat:62,   kind:"forest",   name:"the Siberian taiga" },
+  { plate:"EUR", lon:10,    lat:46.5, kind:"mountain", name:"the Alps" },
+  { plate:"ANT", lon:165,   lat:-82,  kind:"mountain", name:"the Transantarctic Mts." },
+  { plate:"AUS", lon:132,   lat:-25,  kind:"desert",   name:"the Australian outback" },
+  { plate:"NAM", lon:-95,   lat:56,   kind:"forest",   name:"the Canadian boreal forest" },
+  { plate:"EUR", lon:-4.5,  lat:57,   kind:"mountain", name:"the Scottish Highlands" },
+  { plate:"SIB", lon:59,    lat:58,   kind:"mountain", name:"the Ural Mts." },
+  { plate:"CHI", lon:103,   lat:16,   kind:"forest",   name:"the rainforest of Southeast Asia" },
+  { plate:"NAM", lon:-40,   lat:72,   kind:"ice",      name:"the Greenland ice sheet" },
+  { plate:"ANT", lon:90,    lat:-78,  kind:"ice",      name:"the East Antarctic ice sheet" },
+  { plate:"AFR", lon:22,    lat:-24,  kind:"desert",   name:"the Kalahari" },
+  { plate:"AFR", lon:-4,    lat:32,   kind:"mountain", name:"the Atlas Mts." },
+  { plate:"AUS", lon:149,   lat:-30,  kind:"mountain", name:"the Great Dividing Range" },
+  { plate:"IND", lon:75.5,  lat:13,   kind:"forest",   name:"the Western Ghats" },
+  { plate:"NAM", lon:-100,  lat:40,   kind:"region",   name:"the Great Plains" },
+  { plate:"CHI", lon:104,   lat:43,   kind:"desert",   name:"the Gobi" },
+  { plate:"AFR", lon:47,    lat:22,   kind:"desert",   name:"Arabia" },
+  { plate:"SAM", lon:-69,   lat:-45,  kind:"region",   name:"Patagonia" },
+  { plate:"EUR", lon:15,    lat:62,   kind:"region",   name:"Scandinavia" },
+  { plate:"IND", lon:77,    lat:19,   kind:"region",   name:"the Deccan" },
+  { plate:"CHI", lon:89,    lat:33.5, kind:"region",   name:"Tibet" },
+  { plate:"NAM", lon:-85,   lat:45,   kind:"region",   name:"the Great Lakes" },
+  { plate:"EUR", lon:-4,    lat:40,   kind:"region",   name:"Spain" },
+  { plate:"NAM", lon:-81.5, lat:28,   kind:"region",   name:"Florida" },
+  { plate:"MAD", lon:47,    lat:-19,  kind:"region",   name:"Madagascar" },
+  { plate:"AUS", lon:145,   lat:-16,  kind:"forest",   name:"the Queensland rainforest" }
+];
+
+const OLD_LANDS = [
+  { plate:"NAM", lon:-98, lat:50, text:"Laurentia" },
+  { plate:"EUR", lon:32,  lat:58, text:"Baltica" },
+  { plate:"SIB", lon:105, lat:64, text:"Siberia" },
+  { plate:"AFR", lon:20,  lat:5,  text:"Gondwana" },
+  { plate:"CHI", lon:108, lat:30, text:"China blocks" }
+];
+const MODERN_LANDS = [
+  { plate:"NAM", lon:-100, lat:48,  text:"North America" },
+  { plate:"SAM", lon:-58,  lat:-12, text:"South America" },
+  { plate:"AFR", lon:20,   lat:8,   text:"Africa" },
+  { plate:"EUR", lon:22,   lat:51,  text:"Europe" },
+  { plate:"SIB", lon:95,   lat:58,  text:"Asia" },
+  { plate:"IND", lon:79,   lat:22,  text:"India" },
+  { plate:"AUS", lon:134,  lat:-25, text:"Australia" },
+  { plate:"ANT", lon:60,   lat:-80, text:"Antarctica" }
+];
+const PANGAEA = [
+  { plate:"AFR", lon:14,  lat:11, text:"Pangaea" },
+  { plate:"CHI", lon:108, lat:30, text:"China blocks" }
+];
+
+const PERIOD_LABELS = {
+  cam:{ lands:OLD_LANDS,
+        oceans:[{ at:[3,-34], text:"Iapetus Ocean" }, { at:[140,50], text:"Panthalassa" }] },
+  ord:{ lands:OLD_LANDS,
+        oceans:[{ at:[-39,-29], text:"Iapetus Ocean" }, { at:[50,40], text:"Panthalassa" }] },
+  sil:{ lands:OLD_LANDS,
+        oceans:[{ at:[-1,-55], text:"Rheic Ocean" }, { at:[105,40], text:"Panthalassa" }] },
+  dev:{ lands:[{ plate:"NAM", lon:-72, lat:50, text:"Laurussia" }, OLD_LANDS[2], OLD_LANDS[3], OLD_LANDS[4]],
+        oceans:[{ at:[-15,-33], text:"Rheic Ocean" }, { at:[99,-28], text:"Paleo-Tethys" },
+                { at:[-90,60], text:"Panthalassa" }] },
+  car:{ lands:[{ plate:"NAM", lon:-72, lat:50, text:"Laurussia" }, OLD_LANDS[2], OLD_LANDS[3], OLD_LANDS[4]],
+        oceans:[{ at:[72,2], text:"Paleo-Tethys" }, { at:[-110,50], text:"Panthalassa" }] },
+  per:{ lands:PANGAEA,
+        oceans:[{ at:[66,5], text:"Tethys Ocean" }, { at:[-175,5], text:"Panthalassa" }] },
+  tri:{ lands:PANGAEA,
+        oceans:[{ at:[69,-4], text:"Tethys Ocean" }, { at:[135,5], text:"Panthalassa" }] },
+  jur:{ lands:[{ plate:"NAM", lon:-92, lat:52, text:"Laurasia" }, { plate:"AFR", lon:20, lat:0, text:"Gondwana" }],
+        oceans:[{ at:[81,-16], text:"Tethys Ocean" }, { at:[-145,-10], text:"Panthalassa" }] },
+  cre:{ lands:MODERN_LANDS,
+        oceans:[{ at:[-14,-19], text:"South Atlantic" }, { at:[-30,27], text:"North Atlantic" },
+                { at:[76,0], text:"Tethys Ocean" }, { at:[-160,-10], text:"Pacific Ocean" }] },
+  pgn:{ lands:MODERN_LANDS,
+        oceans:[{ at:[-41,28], text:"Atlantic Ocean" }, { at:[77,-36], text:"Indian Ocean" },
+                { at:[23,33], text:"Tethys, closing" }, { at:[-165,-5], text:"Pacific Ocean" }] },
+  now:{ lands:MODERN_LANDS,
+        oceans:[{ at:[-140,5], text:"Pacific Ocean" }, { at:[-38,30], text:"Atlantic Ocean" },
+                { at:[78,-22], text:"Indian Ocean" }, { at:[100,-57], text:"Southern Ocean" },
+                { at:[170,82], text:"Arctic Ocean" }] }
+};

@@ -92,6 +92,51 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(doc.getElementById("togSpin").getAttribute("aria-pressed") === String(!reducedMotion),
      "auto-spin is " + (reducedMotion ? "off" : "on") + " and the toggle says so");
 
+  console.log("labels");
+  const labelTexts = () => [...doc.querySelectorAll("#gLabel text")].map(t => t.textContent);
+  run("setPeriod(" + ids.indexOf("per") + ", true); tMix = 1; draw();");
+  ok(labelTexts().includes("now the Appalachian Mts."), 'Permian globe carries "now the Appalachian Mts."');
+  ok(labelTexts().includes("PANGAEA") && labelTexts().includes("Tethys Ocean"), "Permian names Pangaea and the Tethys");
+  run("setPeriod(" + ids.indexOf("now") + ", true); tMix = 1; draw();");
+  ok(labelTexts().includes("Appalachian Mts.") && !labelTexts().some(t => /^now /.test(t)), 'today the landmarks drop the word "now"');
+  ok(run("LANDMARKS.every(m => PLATES[m.plate] && /^(mountain|forest|desert|ice|region)$/.test(m.kind))") &&
+     run("PERIODS.every(p => PERIOD_LABELS[p.id] && PERIOD_LABELS[p.id].lands.every(l => PLATES[l.plate]))"),
+     "landmarks and period labels reference real plates");
+  /* every ocean label must sit over open water, at least 5 degrees from land */
+  const wet = run(`(function(){
+    const dot = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2], bad = [];
+    for (const P of PERIODS){
+      const rings = [];
+      for (const k of PLATE_IDS){
+        const q = P.plates[k], T = plateTransform(PLATES[k].home, q[0], q[1], q[2]);
+        for (const r of PLATES[k].vecs) rings.push(r.map(T));
+      }
+      for (const o of PERIOD_LABELS[P.id].oceans){
+        const pt = vec(o.at[0], o.at[1]);
+        const u = norm(cross(Math.abs(pt[2]) > .9 ? [1,0,0] : [0,0,1], pt)), w = cross(pt, u);
+        let inside = false, near = 180;
+        for (const r of rings){
+          let ang = 0;
+          for (let i = 0; i < r.length; i++){
+            const a = r[i], b = r[(i + 1) % r.length];
+            near = Math.min(near, Math.acos(Math.min(1, dot(a, pt))) / D);
+            if (dot(a, pt) < .05 || dot(b, pt) < .05) continue;
+            const ax = dot(a, u)/dot(a, pt), ay = dot(a, w)/dot(a, pt), bx = dot(b, u)/dot(b, pt), by = dot(b, w)/dot(b, pt);
+            ang += Math.atan2(ax*by - ay*bx, ax*bx + ay*by);
+          }
+          if (Math.abs(ang) > Math.PI) inside = true;
+        }
+        if (inside || near < 5) bad.push(P.id + " " + o.text);
+      }
+    }
+    return bad.join(", ");
+  })()`);
+  ok(wet === "", "ocean labels sit over open water" + (wet ? ": " + wet : ""));
+  click(doc.getElementById("togLabels"));
+  run("draw();");
+  ok(doc.getElementById("gLabel").style.display === "none", "Labels toggle hides them");
+  click(doc.getElementById("togLabels"));
+
   console.log("panel: period and site");
   const panel = doc.getElementById("panel");
   ok(panel.querySelector(".p-head") && panel.querySelectorAll(".site-btn").length > 0, "period overview renders");

@@ -11,7 +11,7 @@ const DRIFT_MS = 3000, CAM_MS = 1800, SPIN_DEG_S = 1.65, PLAY_MS = 7000;
 let driftStart = 0, driftDur = reduced ? 1 : DRIFT_MS, lastFrame = 0;
 let camTarget = null, camStart = 0, camFrom = null;
 let spinning = !reduced, dragging = false, playing = false, playTimer = null;
-let showIce = true, showGrid = true;
+let showIce = true, showGrid = true, showLabels = true;
 let selected = null, hint = document.getElementById("globeHint"), hintGone = false;
 let mode = "period";               // period | site | compare | layers
 let highlights = [], pulseStart = 0, seqTimer = null;
@@ -49,6 +49,7 @@ const gEq    = el("path", { fill:"none", stroke:"#7FD0E8", "stroke-opacity":".34
                             "stroke-width":"1.2", "stroke-dasharray":"5 4" }, svg);
 const gLand  = el("g", { id:"gLand" }, svg);
 const gIce   = el("g", { id:"gIce" }, svg);
+const gLabel = el("g", { id:"gLabel", "pointer-events":"none" }, svg);
 const gMark  = el("g", { id:"gMark" }, svg);
 const gHi    = el("g", { id:"gHi", "pointer-events":"none" }, svg);
 el("circle", { cx:CX, cy:CY, r:R, fill:"url(#shadeG)", "pointer-events":"none" }, svg);
@@ -108,6 +109,7 @@ function currentPose(plate){
 }
 
 function buildPeriod(){
+  buildLabels();
   gMark.textContent = ""; gIce.textContent = "";
   markNodes = []; iceNodes = [];
   for (const src of [[fromIdx, 1], [idx, 0]]){
@@ -181,6 +183,7 @@ function draw(){
     m.dot.setAttribute("r", sel ? 6 : 4.6);
   }
 
+  drawLabels(poses, appear);
   drawHighlights(poses);
 
   /* pole pins */
@@ -283,6 +286,105 @@ function selectSite(n){
   hideHint();
 }
 
+/* ===================== labels on the globe =====================
+   Three kinds, in order of priority: what the continents were called then,
+   the oceans of the time, and modern landmarks marked "now the ...".
+   Each frame the labels facing the viewer are placed greedily; one that
+   would overlap a marker or an earlier label is faded out.                */
+const LABEL_STYLE = {
+  land:  { size:14.5, wide:.74 },     // wide: average glyph width in ems
+  ocean: { size:14,   wide:.50 },
+  mark:  { size:11,   wide:.56 }
+};
+const MARK_ICON = {
+  mountain:'<path d="M-6 3.5L-1.5 -4L1.5 .5L3 -1.5L6 3.5Z" fill="#F4F7F9"/>',
+  forest:  '<circle cy="-1.5" r="3.6" fill="#F4F7F9"/><path d="M0 1v4" stroke="#F4F7F9" stroke-width="1.6"/>',
+  desert:  '<path d="M-6 2q3-6 6 0t6 0" fill="none" stroke="#F4F7F9" stroke-width="1.6" stroke-linecap="round"/>',
+  ice:     '<path d="M0 -4.5L4 0L0 4.5L-4 0Z" fill="none" stroke="#F4F7F9" stroke-width="1.5"/>',
+  region:  '<circle r="2" fill="#F4F7F9"/>'
+};
+let labelNodes = [], labelScale = 1;
+
+function landmarkText(m){
+  if (PERIODS[idx].ma > 0) return "now " + m.name;
+  const t = m.name.replace(/^the /, "");
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+function buildLabels(){
+  gLabel.textContent = ""; labelNodes = [];
+  const set = PERIOD_LABELS[PERIODS[idx].id] || {};
+  const add = (kind, text, where, icon) => {
+    const g = el("g", { class:"glabel " + kind, opacity:0 }, gLabel);
+    if (icon) g.innerHTML = icon;
+    const t = el("text", {}, g);
+    t.textContent = kind === "land" ? text.toUpperCase() : text;
+    /* tier: names of the time, then the ten best-known landmarks, then the rest */
+    const tier = kind === "land" ? 0 : kind === "ocean" ? 1 : LANDMARKS.indexOf(where) < 10 ? 2 : 3;
+    labelNodes.push({ g, t, kind, where, tier, n:labelNodes.length, chars:text.length, a:0, on:false });
+  };
+  (set.lands  || []).forEach(l => add("land",  l.text, l));
+  (set.oceans || []).forEach(o => add("ocean", o.text, o));
+  LANDMARKS.forEach(m => add("mark", landmarkText(m), m, MARK_ICON[m.kind] || MARK_ICON.region));
+}
+function overlaps(b, boxes){
+  for (const o of boxes) if (b[0] < o[2] && b[2] > o[0] && b[1] < o[3] && b[3] > o[1]) return true;
+  return false;
+}
+function drawLabels(poses, appear){
+  gLabel.style.display = showLabels ? "" : "none";
+  if (!showLabels) return;
+  const boxes = [];
+  const screen = (where) => {
+    let v;
+    if (where.at) v = vec(where.at[0], where.at[1]);
+    else {
+      const p = poses[where.plate];
+      v = plateTransform(PLATES[where.plate].home, p[0], p[1], p[2])(vec(where.lon, where.lat));
+    }
+    const c = toCamera(v);
+    return [CX + c[1]*R, CY - c[2]*R, c[0]];
+  };
+  /* markers and highlighted places keep their ground */
+  for (const m of markNodes){
+    const s = screen(m.site);
+    if (s[2] > 0) boxes.push([s[0] - 11, s[1] - 11, s[0] + 11, s[1] + 11]);
+  }
+  for (const h of highlights){
+    const s = screen(h.place);
+    if (s[2] <= 0 || h.g.getAttribute("display") === "none") continue;
+    const w = (h.place.short || h.place.label).length * 7 * labelScale + 16;
+    boxes.push(s[0] > CX + 110 ? [s[0] - w, s[1] - 11, s[0] + 11, s[1] + 11]
+                               : [s[0] - 11, s[1] - 11, s[0] + w, s[1] + 11]);
+  }
+  /* within a tier, labels already showing go first, so they do not flicker */
+  const order = labelNodes.slice().sort((p, q) => p.tier - q.tier || (q.on - p.on) || p.n - q.n);
+  for (const L of order){
+    const s = screen(L.where), st = LABEL_STYLE[L.kind], size = st.size * labelScale;
+    let target = 0;
+    if (s[2] > .32){
+      const w = L.chars * size * st.wide, h = size * 1.25;
+      const flip = L.kind === "mark" && s[0] + w + 12 > CX + R * .92;
+      const box = L.kind === "mark"
+        ? (flip ? [s[0] - w - 12, s[1] - h/2, s[0] + 8, s[1] + h/2] : [s[0] - 8, s[1] - h/2, s[0] + w + 12, s[1] + h/2])
+        : [s[0] - w/2, s[1] - h/2, s[0] + w/2, s[1] + h/2];
+      if (!overlaps(box, boxes)){
+        boxes.push(box);
+        target = Math.min(1, (s[2] - .32) / .2) * appear;
+        L.g.setAttribute("transform", "translate(" + s[0].toFixed(1) + "," + s[1].toFixed(1) + ")");
+        L.t.setAttribute("font-size", size.toFixed(1));
+        if (L.kind === "mark"){
+          L.t.setAttribute("x", flip ? -10 : 10);
+          L.t.setAttribute("text-anchor", flip ? "end" : "start");
+        }
+      }
+    }
+    L.on = target > 0;
+    L.a = reduced ? target : L.a + (target - L.a) * .18;
+    if (L.a < .01) L.a = 0;
+    L.g.setAttribute("opacity", L.a.toFixed(2));
+  }
+}
+
 /* ===================== highlights and pulses =====================
    Places picked out by a comparison or a column. They are pinned to a
    plate like sites, so they drift with it when the period changes.
@@ -320,6 +422,7 @@ function setHighlights(places){
    enlarged so they stay readable                                          */
 function fitLabels(){
   const w = svg.getBoundingClientRect().width || 620;
+  labelScale = Math.max(1, Math.min(1.7, 620 / w));
   const size = Math.round(12 * Math.max(1, Math.min(1.9, 620 / w)));
   for (const h of highlights) h.label.setAttribute("font-size", size);
 }
@@ -782,6 +885,7 @@ function toggle(id, get, set){
 }
 toggle("togIce",  () => showIce,  v => showIce = v);
 toggle("togGrid", () => showGrid, v => showGrid = v);
+toggle("togLabels", () => showLabels, v => showLabels = v);
 toggle("togSpin", () => spinning, v => spinning = v);
 document.getElementById("togSpin").setAttribute("aria-pressed", spinning);
 
@@ -825,6 +929,7 @@ dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
 document.documentElement.style.setProperty("--accent", PERIODS[idx].accent);
 document.getElementById("stampName").textContent = PERIODS[idx].name;
 document.getElementById("stampAge").textContent = "present";
+fitLabels();
 buildPeriod();
 renderPeriod();
 requestAnimationFrame(frame);

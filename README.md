@@ -13,6 +13,12 @@ and no runtime dependencies beyond two Google Fonts, and runs from a folder on d
 - **The globe.** An orthographic sphere with ten rigid plates. Period colours follow
   the International Commission on Stratigraphy timescale, and the page accent follows
   the colour of the current period.
+- **Labels on the globe.** Capitals give the name a continent had at the time (Laurentia,
+  Gondwana, Pangaea), italics name the oceans of the time (Iapetus, Tethys, Panthalassa),
+  and small labels mark modern landmarks on the ground they now occupy: in the Permian,
+  "now the Appalachian Mts." sits beside "now the Atlas Mts." in the middle of Pangaea.
+  Labels that would collide are dropped, and a toggle turns them all off.
+- **The timeline** runs down the left of the globe, youngest at the top like a rock column.
 - **Sites.** About fifty clickable places, each with a then/now panel.
 - **Comparisons.** Pairs and sets of places that look alike, sorted into *inherited*
   (alike because they were once joined, such as the Dwyka, Itararé and Talchir glacial
@@ -41,7 +47,7 @@ npm test
 ```
 
 `test/smoke.js` loads the page in jsdom and checks that land paths have geometry in
-every period, markers exist, all four panel modes render, the comparisons and columns
+every period, markers exist, the globe labels appear, all four panel modes render, the comparisons and columns
 drive the globe, and the plate outlines and poses still match their recorded hashes.
 `node test/smoke.js --reduced` runs the same checks with `prefers-reduced-motion` set.
 jsdom is a devDependency only; nothing from `node_modules` is used by the site.
@@ -52,7 +58,7 @@ jsdom is a devDependency only; nothing from `node_modules` is used by the site.
 index.html          page structure
 css/globe.css       all styles
 js/geometry.js      spherical maths, plate outlines (PLATES), icon drawings (ICONS)
-js/data.js          PERIODS, COMPARISONS, COLUMNS: all content
+js/data.js          PERIODS, COMPARISONS, COLUMNS, LANDMARKS, PERIOD_LABELS: all content
 js/app.js           runtime: drawing, camera, panel modes, controls
 test/smoke.js       jsdom smoke test
 .github/workflows/pages.yml   test, then deploy the repo root to GitHub Pages
@@ -115,6 +121,23 @@ cycad broadleaf palm grass scrub dune ice tundra taiga sea reef volcano city swa
 Each period has `id`, `name`, `ma`, `span`, `colour` (ICS), `accent`, `view`
 (the camera's starting longitude and latitude), `headline`, `body`, `facts`,
 `strata` (the "Rock record" sentence), `plates`, `ice` and `sites`.
+
+### A landmark or a label
+
+```js
+// LANDMARKS: a modern feature, pinned to a plate. `name` reads after the word "now".
+{ plate:"NAM", lon:-80, lat:37.5, kind:"mountain", name:"the Appalachian Mts." }
+//   kind: mountain | forest | desert | ice | region   (the small icon)
+
+// PERIOD_LABELS[periodId].lands: what a continent was called then
+{ plate:"AFR", lon:20, lat:5, text:"Gondwana" }
+
+// PERIOD_LABELS[periodId].oceans: fixed at [lon, lat] in that period's globe
+{ at:[66, 5], text:"Tethys Ocean" }
+```
+
+Landmarks earlier in the list win when labels collide, and the first ten are always
+placed first. `npm test` checks that every ocean label sits over open water.
 
 ### A comparison
 
