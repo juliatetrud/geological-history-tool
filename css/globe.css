@@ -389,6 +389,31 @@ footer.foot{
 .chip.go{color:var(--text); background:var(--shelf-2);}
 .cmp-when{font-size:12px; color:var(--text-faint);}
 
+/* ---------- animals ---------- */
+.animals{list-style:none; margin:4px 0 0; padding:0;}
+.animal{
+  display:grid; grid-template-columns:64px minmax(0,1fr); gap:14px;
+  padding:14px 0 15px 12px; margin-left:-14px;
+  border-left:2px solid transparent; border-top:1px solid var(--line-soft);
+  transition:border-color .3s ease;
+}
+.animal.active{border-left-color:var(--accent);}
+.an-pic{
+  width:64px; height:48px; display:flex; align-items:center; justify-content:center;
+  color:var(--text-faint);
+}
+.an-pic img{max-width:64px; max-height:48px; filter:invert(1); opacity:.82;}   /* PhyloPic art is black */
+.an-pic svg{width:30px; height:30px;}
+.an-group{font-weight:400; color:var(--text-dim);}
+.an-tag{
+  display:flex; align-items:center; flex-wrap:wrap; gap:0 6px;
+  font-size:12.5px; color:var(--accent); margin:0 0 6px; transition:color .4s ease;
+}
+.an-tag svg{width:14px; height:14px; flex:0 0 auto;}
+.an-size{color:var(--text-faint);}
+.an-site{margin-top:9px;}
+@media (max-width:420px){ .animal{grid-template-columns:44px minmax(0,1fr); gap:10px; margin-left:-12px; padding-left:10px;} .an-pic{width:44px;} .an-pic img{max-width:44px;} }
+
 /* ---------- stratigraphic column ---------- */
 .col-switch{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 12px;}
 .layer-card{

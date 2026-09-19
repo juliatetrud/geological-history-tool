@@ -671,7 +671,8 @@ function scrollToGlobe(){
 
 /* ===================== panel modes ===================== */
 const modeChips = { compare:document.getElementById("modeCompare"),
-                    layers:document.getElementById("modeLayers") };
+                    layers:document.getElementById("modeLayers"),
+                    animals:document.getElementById("modeAnimals") };
 function setMode(m){
   mode = m;
   for (const k in modeChips) modeChips[k].setAttribute("aria-pressed", k === m);
@@ -681,16 +682,18 @@ function refreshMode(){
   const b = panel.querySelector(".back");
   if (b) b.innerHTML = "&larr; " + esc(PERIODS[idx].name);
   if (mode === "layers"){ markCurrentLayers(); revealCurrentLayer(); }
+  if (mode === "animals") renderAnimals();          // the list belongs to the period
 }
 function enterMode(m){
   stopPlay(); cancelSeq();
   if (mode === m){ renderPeriod(); return; }
-  if (m === "compare") renderCompare(); else renderLayers(true);
+  if (m === "compare") renderCompare(); else if (m === "animals") renderAnimals(); else renderLayers(true);
   if (stackedMQ.matches && panel.scrollIntoView)
     panel.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block:"start" });
 }
 modeChips.compare.addEventListener("click", () => enterMode("compare"));
 modeChips.layers.addEventListener("click", () => enterMode("layers"));
+modeChips.animals.addEventListener("click", () => enterMode("animals"));
 
 /* ---------- look-alikes and relatives ---------- */
 function cmpSteps(c){
@@ -760,6 +763,61 @@ function showComparison(c, one){
     showPlaces(periodIndex(steps[k].pid), steps[k].places);
     if (k + 1 < steps.length) seqTimer = setTimeout(() => run(k + 1), DRIFT_MS + PULSE_MS + 1200);
   })(0);
+  scrollToGlobe();
+}
+
+/* ---------- animals ---------- */
+const HABITAT = {
+  marine:     { name:"Sea",         icon:'<path d="M2 9c3-3 5-3 8 0s5 3 8 0M2 15c3-3 5-3 8 0s5 3 8 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' },
+  freshwater: { name:"Fresh water", icon:'<path d="M10 2.5c3.4 4.2 5.2 7 5.2 9.4a5.2 5.2 0 0 1-10.4 0C4.8 9.5 6.6 6.7 10 2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>' },
+  land:       { name:"Land",        icon:'<path d="M2 16h16M4 16l4-8 3 5 2-3 3 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' },
+  air:        { name:"Air",         icon:'<path d="M2 12c4-1 6-4 8-8 2 4 4 7 8 8-3 0-5 1-8 4-3-3-5-4-8-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>' }
+};
+let activeAnimal = null;
+
+function renderAnimals(){
+  setMode("animals"); selected = null; clearHighlights(); activeAnimal = null;
+  const p = PERIODS[idx], list = (typeof ANIMALS !== "undefined" && ANIMALS[p.id]) || [];
+  const order = ["marine", "freshwater", "land", "air"];
+  panel.innerHTML =
+    '<div class="fade">' + backButton() +
+    '<p class="kicker">Animals</p>' +
+    '<h2 class="p-head">Animals of ' + (p.ma === 0 ? "today" : "the " + esc(p.name)) + '</h2>' +
+    '<p class="p-sub">' + esc(p.span) + '</p>' +
+    (list.length ? "" : '<p class="p-body">No animals are listed for this period yet.</p>') +
+    '<ul class="animals">' + list.slice().sort((a, b) => order.indexOf(a.habitat) - order.indexOf(b.habitat)).map(a => {
+      const i = list.indexOf(a), h = HABITAT[a.habitat] || HABITAT.land;
+      const site = a.site ? p.sites.findIndex(s => s.title === a.site) : -1;
+      return '<li class="animal" data-i="' + i + '">' +
+        '<div class="an-pic">' + (a.img
+          ? '<img src="' + esc(a.img) + '" alt="" loading="lazy">'
+          : '<svg viewBox="0 0 20 20" aria-hidden="true">' + h.icon + '</svg>') + '</div>' +
+        '<div class="an-text">' +
+        '<h4 class="cmp-t">' + esc(a.genus) + ' <span class="an-group">(' + esc(a.group) + ')</span></h4>' +
+        '<p class="an-tag"><svg viewBox="0 0 20 20" aria-hidden="true">' + h.icon + '</svg>' + esc(h.name) +
+        '<span class="an-size"> · ' + esc(a.size) + '</span></p>' +
+        '<p class="cmp-b">' + esc(a.environment) + ' ' + esc(a.matters) + '</p>' +
+        '<div class="cmp-act"><button class="chip go">Show on globe</button>' +
+        '<span class="cmp-when">Found at ' + esc(a.place) + '</span></div>' +
+        (site >= 0 ? '<button class="place an-site" data-site="' + site + '"><span class="pin"></span>Read about ' +
+                     esc(a.site) + '</button>' : '') +
+        sourcesLine(a.sources) + '</div></li>';
+    }).join("") + '</ul></div>';
+  panel.querySelector(".back").addEventListener("click", renderPeriod);
+  panel.querySelectorAll(".animal").forEach(li => {
+    li.querySelector(".go").addEventListener("click", () => showAnimal(+li.dataset.i));
+    const s = li.querySelector(".an-site");
+    if (s) s.addEventListener("click", () => selectSite(+s.dataset.site));
+  });
+  panel.scrollTop = 0;
+}
+function showAnimal(i){
+  stopPlay(); cancelSeq();
+  const a = ANIMALS[PERIODS[idx].id][i];
+  activeAnimal = i;
+  panel.querySelectorAll(".animal").forEach(li => li.classList.toggle("active", +li.dataset.i === i));
+  setHighlights([{ plate:a.plate, lon:a.lon, lat:a.lat, short:a.genus, only:null }]);
+  showPlaces(idx, [highlights[0].place]);
   scrollToGlobe();
 }
 
@@ -1018,7 +1076,7 @@ function setPeriod(next, instant){
     b.setAttribute("aria-current", i === idx ? "true" : "false"));
   revealSeg();
   buildPeriod();
-  if (mode === "compare" || mode === "layers"){ selected = null; refreshMode(); }
+  if (mode === "compare" || mode === "layers" || mode === "animals"){ selected = null; refreshMode(); }
   else renderPeriod();
   if (p.view && !camTarget){
     camFrom = [viewLon, viewLat]; camStart = performance.now();

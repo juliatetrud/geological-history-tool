@@ -42,7 +42,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async function(){
   console.log("page" + (reducedMotion ? " (prefers-reduced-motion)" : ""));
-  ok(srcs.join() === "js/geometry.js,js/data.js,js/terrain.js,js/sources.js,js/app.js", "scripts load in order: " + srcs.join(", "));
+  ok(srcs.join() === "js/geometry.js,js/data.js,js/terrain.js,js/animals.js,js/sources.js,js/app.js", "scripts load in order: " + srcs.join(", "));
   ok(doc.querySelector('link[href="css/globe.css"]') !== null, "stylesheet is linked");
   ok(!/type=["']module["']/.test(html), "no ES modules, so the page runs from file://");
   for (const src of srcs) run(fs.readFileSync(path.join(root, src), "utf8"));
