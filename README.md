@@ -19,6 +19,14 @@ and no runtime dependencies beyond two Google Fonts, and runs from a folder on d
   "now the Appalachian Mts." sits beside "now the Atlas Mts." in the middle of Pangaea.
   A name is tried on each side of its point; if none is free, the icon stays without it.
   A toggle turns all labels off.
+- **Terrain.** Land is coloured by what grew on it. Before the Devonian it is bare rock. From
+  the Devonian on, the colours follow climate belts fixed to the globe, so a continent changes
+  colour as it drifts from one latitude to another. Today's globe shows actual forests, deserts,
+  tundra, ice, rivers and lakes. Mountain ranges appear in the period that raised them, and
+  pale blue patches are shallow seas over a continent's interior. A key under the globe names
+  the colours in use.
+- **Zoom.** Use the + and − buttons or keys, pinch on a touch screen or trackpad, or double-click.
+  The plain scroll wheel is left to the page. Zooming in makes room for more landmark names.
 - **The timeline** runs down the left of the globe, youngest at the top like a rock column.
 - **Sites.** About fifty clickable places, each with a then/now panel.
 - **Comparisons.** Pairs and sets of places that look alike, sorted into *inherited*
@@ -60,6 +68,7 @@ index.html          page structure
 css/globe.css       all styles
 js/geometry.js      spherical maths, plate outlines (PLATES), icon drawings (ICONS)
 js/data.js          PERIODS, COMPARISONS, COLUMNS, LANDMARKS, PERIOD_LABELS: all content
+js/terrain.js       BIOMES, BELTS, LANDCOVER, RIVERS, LAKES, RANGES, SEAS: what colours the land
 js/app.js           runtime: drawing, camera, panel modes, controls
 test/smoke.js       jsdom smoke test
 .github/workflows/pages.yml   test, then deploy the repo root to GitHub Pages
@@ -140,6 +149,19 @@ Each period has `id`, `name`, `ma`, `span`, `colour` (ICS), `accent`, `view`
 Landmarks earlier in the list win when labels collide, and the first `LANDMARK_TOP`
 are always placed first. `npm test` checks that every ocean label sits over open water.
 
+### Terrain
+
+`js/terrain.js` holds everything that colours the land. Shapes are lists of modern
+`[lon, lat]` pinned to a plate, and they are clipped to the coastline, so they can overrun it.
+
+```js
+BELTS.per = [[-90, -38, "forestC"], [-38, -8, "desert"], ...]   // south to north, no gaps
+{ plate:"SAM", biome:"forestT", pts:[[-78,2],[-70,8], ...] }      // LANDCOVER, today only
+{ plate:"AFR", name:"Nile", pts:[[33,0.5],[31.5,6], ...] }        // RIVERS and LAKES, today only
+{ plate:"SIB", name:"Urals", from:"per", pts:[...] }              // RANGES; optional to:"jur"
+SEAS.cre = [{ plate:"NAM", name:"Western Interior Seaway", pts:[...] }]
+```
+
 ### A comparison
 
 ```js
@@ -201,6 +223,11 @@ camera moves are instant, and the location pulse is a static ring.
 - Layer thicknesses are approximate and vary from place to place. The columns are
   composites: no single cliff shows every layer.
 - Ice sheets are drawn as simple circles.
+- Terrain is schematic. Past climates are drawn as belts of latitude, which ignores
+  rain shadows, monsoons and the distance from the sea. Ancient rivers are not drawn,
+  because their courses are mostly unknown. Shallow seas are rough outlines of the
+  best-known ones, and many others are left out.
+- The coastlines are simple polygons, and zooming in shows it.
 
 ## Credits
 

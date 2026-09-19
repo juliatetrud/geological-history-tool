@@ -1,6 +1,7 @@
 /* ===================== spherical geometry ===================== */
 const D = Math.PI / 180;
-const R = 268, CX = 310, CY = 310;
+const CX = 310, CY = 310;
+let R = 268;                 // globe radius in drawing units; the zoom control changes it
 
 function vec(lon, lat){
   const a = lon*D, b = lat*D, c = Math.cos(b);

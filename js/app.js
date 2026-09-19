@@ -11,7 +11,9 @@ const DRIFT_MS = 3000, CAM_MS = 1800, SPIN_DEG_S = 1.65, PLAY_MS = 7000;
 let driftStart = 0, driftDur = reduced ? 1 : DRIFT_MS, lastFrame = 0;
 let camTarget = null, camStart = 0, camFrom = null;
 let spinning = !reduced, dragging = false, playing = false, playTimer = null;
-let showIce = true, showGrid = true, showLabels = true;
+let showIce = true, showGrid = true, showLabels = true, showTerrain = true;
+const R0 = R, ZOOM_MAX = 4;
+let zoom = 1, zoomTarget = 1;
 let selected = null, hint = document.getElementById("globeHint"), hintGone = false;
 let mode = "period";               // period | site | compare | layers
 let highlights = [], pulseStart = 0, seqTimer = null;
@@ -41,29 +43,40 @@ el("stop", { offset:"46%",  "stop-color":"#fff", "stop-opacity":"0" }, sg);
 el("stop", { offset:"86%",  "stop-color":"#000", "stop-opacity":".26" }, sg);
 el("stop", { offset:"100%", "stop-color":"#000", "stop-opacity":".55" }, sg);
 
-el("circle", { cx:CX, cy:CY, r:R+16, fill:"none", stroke:"#1A2833", "stroke-width":1 }, svg);
-el("circle", { cx:CX, cy:CY, r:R, fill:"url(#oceanG)" }, svg);
+const discs = [
+  [el("circle", { cx:CX, cy:CY, r:R+16, fill:"none", stroke:"#1A2833", "stroke-width":1 }, svg), 16],
+  [el("circle", { cx:CX, cy:CY, r:R, fill:"url(#oceanG)" }, svg), 0]
+];
 const gGrid  = el("g", { id:"gGrid", fill:"none", stroke:"#4D8FAE", "stroke-opacity":".2",
                          "stroke-width":".8" }, svg);
 const gEq    = el("path", { fill:"none", stroke:"#7FD0E8", "stroke-opacity":".34",
                             "stroke-width":"1.2", "stroke-dasharray":"5 4" }, svg);
 const gLand  = el("g", { id:"gLand" }, svg);
+const landClip = el("clipPath", { id:"landClip" }, defs);
+const gTerrain = el("g", { id:"gTerrain", "clip-path":"url(#landClip)", "pointer-events":"none" }, svg);
+const gCoast = el("g", { id:"gCoast", fill:"none", stroke:"#6E5937", "stroke-width":".9",
+                         "stroke-linejoin":"round", "pointer-events":"none" }, svg);
 const gIce   = el("g", { id:"gIce" }, svg);
 const gLabel = el("g", { id:"gLabel", "pointer-events":"none" }, svg);
 const gMark  = el("g", { id:"gMark" }, svg);
 const gHi    = el("g", { id:"gHi", "pointer-events":"none" }, svg);
-el("circle", { cx:CX, cy:CY, r:R, fill:"url(#shadeG)", "pointer-events":"none" }, svg);
-el("circle", { cx:CX, cy:CY, r:R, fill:"none", stroke:"#8FBDD4", "stroke-opacity":".22",
-               "stroke-width":1.2, "pointer-events":"none" }, svg);
+discs.push(
+  [el("circle", { cx:CX, cy:CY, r:R, fill:"url(#shadeG)", "pointer-events":"none" }, svg), 0],
+  [el("circle", { cx:CX, cy:CY, r:R, fill:"none", stroke:"#8FBDD4", "stroke-opacity":".22",
+                  "stroke-width":1.2, "pointer-events":"none" }, svg), 0]);
 const gPole  = el("g", { id:"gPole", "pointer-events":"none" }, svg);
 
 /* land paths, created once */
-const landPaths = {};
+/* each ring is drawn three times: the filled land, the clip that keeps the
+   terrain inside the coast, and the coastline stroked on top of the terrain */
+const landPaths = {}, clipPaths = {}, coastPaths = {};
 for (const id of PLATE_IDS){
   const g = el("g", { class:"plate" }, gLand);
   landPaths[id] = PLATES[id].rings.map(() =>
     el("path", { fill:"#C9A97B", stroke:"#7E6642", "stroke-width":".9",
                  "stroke-linejoin":"round" }, g));
+  clipPaths[id]  = PLATES[id].rings.map(() => el("path", {}, landClip));
+  coastPaths[id] = PLATES[id].rings.map(() => el("path", {}, gCoast));
 }
 
 /* graticule geometry */
@@ -110,6 +123,7 @@ function currentPose(plate){
 
 function buildPeriod(){
   buildLabels();
+  buildTerrain();
   gMark.textContent = ""; gIce.textContent = "";
   markNodes = []; iceNodes = [];
   for (const src of [[fromIdx, 1], [idx, 0]]){
@@ -151,11 +165,14 @@ function draw(){
     const T = plateTransform(PLATES[id].home, p[0], p[1], p[2]);
     PLATES[id].vecs.forEach((ring, r) => {
       const moved = ring.map(T);
-      const node = landPaths[id][r];
-      if (!ringVisible(moved)){ node.setAttribute("d", ""); return; }
-      node.setAttribute("d", ringPath(moved));
+      const d = ringVisible(moved) ? ringPath(moved) : "";
+      landPaths[id][r].setAttribute("d", d);
+      clipPaths[id][r].setAttribute("d", d);
+      coastPaths[id][r].setAttribute("d", d);
     });
   }
+
+  drawTerrain(poses);
 
   gIce.style.display = showIce ? "" : "none";
   if (showIce) for (const it of iceNodes){
@@ -214,7 +231,11 @@ function frame(now){
     viewLat = camFrom[1] + (camTarget[1] - camFrom[1]) * e;
     if (k >= 1) camTarget = null;
   } else if (spinning && !dragging){
-    viewLon += SPIN_DEG_S * dt / 1000;
+    viewLon += SPIN_DEG_S * dt / 1000 / zoom;
+  }
+  if (zoom !== zoomTarget){
+    zoom = reduced || Math.abs(zoomTarget - zoom) < .004 ? zoomTarget : zoom + (zoomTarget - zoom) * .22;
+    applyZoom();
   }
   if (viewLon > 180) viewLon -= 360; if (viewLon < -180) viewLon += 360;
   draw();
@@ -284,6 +305,121 @@ function selectSite(n){
   camFrom = [viewLon, viewLat]; camStart = performance.now();
   camTarget = [lon, Math.max(-72, Math.min(72, lat))];
   hideHint();
+}
+
+/* ===================== terrain =====================
+   Colours the land. Past periods use climate belts fixed to the globe, drawn
+   as nested caps around each pole, so a continent changes colour as it
+   drifts. Today uses real land cover. Everything is clipped to the coast.   */
+let terrainNodes = [];
+const terrainKey = document.getElementById("terrainKey");
+
+function mixHex(a, b, t){
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const ch = sh => Math.round(((pa >> sh) & 255) * (1 - t) + ((pb >> sh) & 255) * t);
+  return "#" + ((1 << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).slice(1);
+}
+/* add points along each edge so that long edges follow the sphere */
+function densify(pts, closed){
+  const out = [], n = pts.length, last = closed ? n : n - 1;
+  for (let i = 0; i < last; i++){
+    const a = vec(pts[i][0], pts[i][1]), p = pts[(i + 1) % n], b = vec(p[0], p[1]);
+    const gap = Math.acos(Math.max(-1, Math.min(1, a[0]*b[0] + a[1]*b[1] + a[2]*b[2]))) / D;
+    const steps = Math.max(1, Math.ceil(gap / 4));
+    for (let k = 0; k < steps; k++){
+      const t = k / steps;
+      out.push(norm([a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t, a[2] + (b[2]-a[2])*t]));
+    }
+  }
+  if (!closed){ const e = pts[n - 1]; out.push(vec(e[0], e[1])); }
+  return out;
+}
+
+function buildTerrain(){
+  gTerrain.textContent = ""; terrainNodes = [];
+  const p = PERIODS[idx], belts = BELTS[p.id], key = [];
+  const base = !showTerrain ? BIOMES.bare.colour
+             : belts ? BIOMES[belts.find(b => b[0] < 0 && b[1] > 0)[2]].colour : BIOMES.open.colour;
+  for (const id of PLATE_IDS) for (const node of landPaths[id]) node.setAttribute("fill", base);
+  terrainKey.hidden = !showTerrain;
+  if (!showTerrain) return;
+  const seen = {};
+  const note = (colour, name, kind) => { if (!seen[name]){ seen[name] = 1; key.push([colour, name, kind || "fill"]); } };
+
+  if (belts){
+    /* caps run from the equatorial belt outward; each boundary is softened
+       by three caps that step from one colour to the next                  */
+    const mid = belts.findIndex(b => b[0] < 0 && b[1] > 0);
+    const cap = (pole, lat, colour) => terrainNodes.push({
+      node: el("path", { fill:colour }, gTerrain),
+      ring: capRing(vec(0, pole), 90 - Math.abs(lat), 72) });
+    for (const dir of [1, -1]){
+      for (let i = mid + dir; i >= 0 && i < belts.length; i += dir){
+        const from = BIOMES[belts[i - dir][2]].colour, to = BIOMES[belts[i][2]].colour;
+        const edge = dir > 0 ? belts[i][0] : belts[i][1];
+        [-2, 0, 2].forEach((off, k) => cap(90 * dir, edge + off * dir, mixHex(from, to, (k + 1) / 3)));
+      }
+    }
+    belts.map(b => b[2]).filter((b, i, all) => all.indexOf(b) === i)
+      .sort((a, b) => Object.keys(BIOMES).indexOf(a) - Object.keys(BIOMES).indexOf(b))
+      .forEach(b => note(BIOMES[b].colour, BIOMES[b].name));
+  } else {
+    note(BIOMES.open.colour, BIOMES.open.name);
+    for (const c of LANDCOVER){
+      terrainNodes.push({
+        node: el("path", { fill:BIOMES[c.biome].colour, "fill-opacity":c.biome === "ice" ? 1 : .92 }, gTerrain),
+        plate: c.plate, ring: c.whole ? PLATES[c.plate].vecs[0] : densify(c.pts, true) });
+    }
+    ["forestT", "forestW", "boreal", "desert", "tundra", "ice"].forEach(b => note(BIOMES[b].colour, BIOMES[b].name));
+  }
+
+  for (const sea of (SEAS[p.id] || [])){
+    terrainNodes.push({ node: el("path", { fill:SEA_COLOUR, "fill-opacity":".8" }, gTerrain),
+                        plate: sea.plate, ring: densify(sea.pts, true) });
+    note(SEA_COLOUR, "Shallow sea over the continent");
+  }
+  if (!belts){
+    for (const lake of LAKES)
+      terrainNodes.push({ node: el("path", { fill:SEA_COLOUR }, gTerrain), plate: lake.plate, ring: densify(lake.pts, true) });
+    for (const r of RIVERS)
+      terrainNodes.push({ node: el("path", { fill:"none", stroke:RIVER_COLOUR, "stroke-width":1.2,
+                                             "stroke-linecap":"round", "stroke-linejoin":"round" }, gTerrain),
+                          plate: r.plate, line: densify(r.pts, false) });
+    note(RIVER_COLOUR, "Rivers and lakes", "line");
+  }
+  let ranges = 0;
+  for (const m of RANGES){
+    const a = periodIndex(m.from), b = m.to ? periodIndex(m.to) : PERIODS.length - 1;
+    if (idx < a || idx > b) continue;
+    ranges++;
+    const line = densify(m.pts, false);
+    terrainNodes.push({ node: el("path", { fill:"none", stroke:"#5A4028", "stroke-opacity":".42", "stroke-width":5,
+                                           "stroke-linecap":"round", "stroke-linejoin":"round" }, gTerrain),
+                        plate: m.plate, line });
+    terrainNodes.push({ node: el("path", { fill:"none", stroke:"#3B2A1A", "stroke-opacity":".85", "stroke-width":1.3,
+                                           "stroke-linecap":"round", "stroke-linejoin":"round",
+                                           "stroke-dasharray":"1 3.2" }, gTerrain),
+                        plate: m.plate, line });
+  }
+  if (ranges) note("#5A4028", "Mountain ranges", "range");
+
+  terrainKey.innerHTML = key.map(k =>
+    '<li><i class="' + k[2] + '" style="--c:' + k[0] + '"></i>' + esc(k[1]) + '</li>').join("");
+}
+
+function drawTerrain(poses){
+  gTerrain.style.display = showTerrain ? "" : "none";
+  if (!showTerrain) return;
+  gTerrain.setAttribute("opacity", tMix >= 1 ? 1 : ease(tMix).toFixed(2));
+  const T = {};
+  for (const n of terrainNodes){
+    let pts = n.ring || n.line;
+    if (n.plate){
+      if (!T[n.plate]){ const p = poses[n.plate]; T[n.plate] = plateTransform(PLATES[n.plate].home, p[0], p[1], p[2]); }
+      pts = pts.map(T[n.plate]);
+    }
+    n.node.setAttribute("d", n.line ? linePath(pts) : ringVisible(pts) ? ringPath(pts) : "");
+  }
 }
 
 /* ===================== labels on the globe =====================
@@ -371,6 +507,7 @@ function drawLabels(poses, appear){
   let placing = null;
   const fits = b => !overlaps(b, boxes) && !overlaps(b, pins) &&
     !overlaps(b, reserved.filter(r => r.L !== placing).map(r => r.box)) &&
+    b[0] > 4 && b[1] > 4 && b[2] < CX * 2 - 4 && b[3] < CY * 2 - 4 &&
     Math.hypot(Math.max(Math.abs(b[0] - CX), Math.abs(b[2] - CX)),
                Math.max(Math.abs(b[1] - CY), Math.abs(b[3] - CY))) < R * 1.12;
   for (const L of order){
@@ -923,37 +1060,84 @@ function toggle(id, get, set){
 toggle("togIce",  () => showIce,  v => showIce = v);
 toggle("togGrid", () => showGrid, v => showGrid = v);
 toggle("togLabels", () => showLabels, v => showLabels = v);
+toggle("togTerrain", () => showTerrain, v => { showTerrain = v; buildTerrain(); });
 toggle("togSpin", () => spinning, v => spinning = v);
 document.getElementById("togSpin").setAttribute("aria-pressed", spinning);
 
 /* drag to rotate */
 let px = 0, py = 0;
 function hideHint(){ if (!hintGone){ hintGone = true; hint.classList.add("hide"); } }
+const touches = new Map();          // active pointers, for pinch
+let pinchDist = 0, pinchZoom = 1;
+function touchSpread(){
+  const p = Array.from(touches.values());
+  return Math.hypot(p[0][0] - p[1][0], p[0][1] - p[1][1]);
+}
 svg.addEventListener("pointerdown", e => {
+  touches.set(e.pointerId, [e.clientX, e.clientY]);
+  svg.setPointerCapture(e.pointerId); hideHint();
+  if (touches.size === 2){
+    dragging = false; pinchDist = touchSpread() || 1; pinchZoom = zoom;
+    return;
+  }
   dragging = true; px = e.clientX; py = e.clientY;
-  svg.setPointerCapture(e.pointerId); svg.classList.add("dragging"); hideHint();
+  svg.classList.add("dragging");
 });
 svg.addEventListener("pointermove", e => {
+  if (touches.has(e.pointerId)) touches.set(e.pointerId, [e.clientX, e.clientY]);
+  if (touches.size === 2){ setZoom(pinchZoom * touchSpread() / pinchDist, true); return; }
   if (!dragging) return;
-  const k = 380 / svg.getBoundingClientRect().width;
+  const k = 380 / svg.getBoundingClientRect().width / zoom;
   viewLon -= (e.clientX - px) * 0.32 * k;
   viewLat = Math.max(-88, Math.min(88, viewLat + (e.clientY - py) * 0.32 * k));
   px = e.clientX; py = e.clientY; camTarget = null;
 });
 function endDrag(e){
+  touches.delete(e.pointerId);
+  try { svg.releasePointerCapture(e.pointerId); } catch (err) {}
   if (!dragging) return;
   dragging = false; svg.classList.remove("dragging");
-  try { svg.releasePointerCapture(e.pointerId); } catch (err) {}
 }
+
+/* ===================== zoom =====================
+   Zoom scales the globe's radius, so markers and labels keep their size and
+   more landmark names find room. The plain scroll wheel is left to the page;
+   a trackpad pinch arrives as a wheel event with ctrlKey set.               */
+const zoomOut = document.getElementById("zoomOut"), zoomReset = document.getElementById("zoomReset");
+function applyZoom(){
+  R = R0 * zoom;
+  for (const d of discs) d[0].setAttribute("r", (R + d[1]).toFixed(1));
+}
+function setZoom(z, instant){
+  zoomTarget = Math.max(1, Math.min(ZOOM_MAX, z));
+  if (instant){ zoom = zoomTarget; applyZoom(); }
+  zoomOut.disabled = zoomTarget <= 1;
+  document.getElementById("zoomIn").disabled = zoomTarget >= ZOOM_MAX;
+  zoomReset.hidden = zoomTarget <= 1.01;
+  zoomReset.textContent = "Reset " + zoomTarget.toFixed(1).replace(".0", "") + "×";
+  hideHint();
+}
+document.getElementById("zoomIn").addEventListener("click", () => setZoom(zoomTarget * 1.5));
+zoomOut.addEventListener("click", () => setZoom(zoomTarget / 1.5));
+zoomReset.addEventListener("click", () => setZoom(1));
+svg.addEventListener("dblclick", e => { e.preventDefault(); setZoom(zoomTarget * 1.5); });
+svg.addEventListener("wheel", e => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  setZoom(zoomTarget * Math.exp(-e.deltaY * .012), true);
+}, { passive:false });
 svg.addEventListener("pointerup", endDrag);
 svg.addEventListener("pointercancel", endDrag);
 svg.addEventListener("keydown", e => {
-  const step = 9;
+  const step = 9 / zoom;
   if (e.key === "ArrowLeft")  { viewLon -= step; camTarget = null; e.preventDefault(); }
   if (e.key === "ArrowRight") { viewLon += step; camTarget = null; e.preventDefault(); }
   if (e.key === "ArrowUp")    { viewLat = Math.min(88, viewLat + step); camTarget = null; e.preventDefault(); }
   if (e.key === "ArrowDown")  { viewLat = Math.max(-88, viewLat - step); camTarget = null; e.preventDefault(); }
   if (e.key === "ArrowLeft" || e.key === "ArrowRight") hideHint();
+  if (e.key === "+" || e.key === "=") { setZoom(zoomTarget * 1.5); e.preventDefault(); }
+  if (e.key === "-" || e.key === "_") { setZoom(zoomTarget / 1.5); e.preventDefault(); }
+  if (e.key === "0") { setZoom(1); e.preventDefault(); }
 });
 
 /* about dialog */

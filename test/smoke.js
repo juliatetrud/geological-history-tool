@@ -42,7 +42,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async function(){
   console.log("page" + (reducedMotion ? " (prefers-reduced-motion)" : ""));
-  ok(srcs.join() === "js/geometry.js,js/data.js,js/app.js", "scripts load in order: " + srcs.join(", "));
+  ok(srcs.join() === "js/geometry.js,js/data.js,js/terrain.js,js/app.js", "scripts load in order: " + srcs.join(", "));
   ok(doc.querySelector('link[href="css/globe.css"]') !== null, "stylesheet is linked");
   ok(!/type=["']module["']/.test(html), "no ES modules, so the page runs from file://");
   for (const src of srcs) run(fs.readFileSync(path.join(root, src), "utf8"));
@@ -99,6 +99,45 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(allGood, "every period draws land and markers without NaN");
   ok(doc.getElementById("togSpin").getAttribute("aria-pressed") === String(!reducedMotion),
      "auto-spin is " + (reducedMotion ? "off" : "on") + " and the toggle says so");
+
+  console.log("terrain and zoom");
+  ok(run(`Object.keys(BELTS).every(k => PERIODS.some(p => p.id === k) && BELTS[k][0][0] === -90 &&
+          BELTS[k][BELTS[k].length - 1][1] === 90 &&
+          BELTS[k].every((b, i, all) => BIOMES[b[2]] && b[0] < b[1] && (!i || all[i - 1][1] === b[0])))`),
+     "climate belts run pole to pole without gaps and use known biomes");
+  ok(run(`LANDCOVER.every(c => PLATES[c.plate] && BIOMES[c.biome] && (c.whole || c.pts.length > 2)) &&
+          RIVERS.concat(LAKES).every(r => PLATES[r.plate] && r.pts.length > 1) &&
+          RANGES.every(m => PLATES[m.plate] && PERIODS.some(p => p.id === m.from) && (!m.to || PERIODS.some(p => p.id === m.to))) &&
+          Object.keys(SEAS).every(k => PERIODS.some(p => p.id === k) && SEAS[k].every(s => PLATES[s.plate]))`),
+     "land cover, rivers, ranges and seas reference real plates and periods");
+  let terrainOK = true;
+  for (let i = 0; i < ids.length; i++){
+    run("setPeriod(" + i + ", true); tMix = 1; draw();");
+    const ds = [...doc.querySelectorAll("#gTerrain path")].map(p => p.getAttribute("d") || "");
+    const want = ids[i] === "cam" ? 1 : 3;          // the Cambrian has only its shallow seas
+    if (ds.length < want || ds.some(d => /NaN/.test(d)) || !doc.querySelectorAll("#terrainKey li").length){
+      terrainOK = false; console.log("        terrain problem in " + ids[i], ds.length);
+    }
+  }
+  ok(terrainOK, "every period draws terrain and a colour key");
+  ok(doc.querySelectorAll("#landClip path").length === 13 && doc.getElementById("gTerrain").getAttribute("clip-path") === "url(#landClip)", "terrain is clipped to the coastline");
+  run("setPeriod(" + ids.indexOf("now") + ", true); tMix = 1; draw();");
+  ok([...doc.querySelectorAll("#terrainKey li")].some(li => /Rivers/.test(li.textContent)), "today's key lists rivers");
+  run("setPeriod(" + ids.indexOf("per") + ", true); tMix = 1; draw();");
+  ok(![...doc.querySelectorAll("#terrainKey li")].some(li => /Rivers/.test(li.textContent)) &&
+     [...doc.querySelectorAll("#terrainKey li")].some(li => /Desert/.test(li.textContent)), "the Permian key lists desert and no rivers");
+  click(doc.getElementById("togTerrain"));
+  run("draw();");
+  ok(doc.getElementById("gTerrain").style.display === "none" && doc.getElementById("terrainKey").hidden, "Terrain toggle hides the colouring and its key");
+  click(doc.getElementById("togTerrain"));
+  const r0 = run("R");
+  click(doc.getElementById("zoomIn"));
+  run("zoom = zoomTarget; applyZoom(); draw();");
+  ok(run("R") > r0 * 1.4 && !doc.getElementById("zoomReset").hidden, "zoom in enlarges the globe and offers a reset");
+  ok(landOK().bad === 0, "zoomed land paths have no NaN");
+  click(doc.getElementById("zoomReset"));
+  run("zoom = zoomTarget; applyZoom(); draw();");
+  ok(run("R") === r0 && doc.getElementById("zoomOut").disabled, "reset returns to the full globe");
 
   console.log("labels");
   const labelTexts = () => [...doc.querySelectorAll("#gLabel text")].map(t => t.textContent);
