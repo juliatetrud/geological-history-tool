@@ -31,6 +31,10 @@ and no runtime dependencies beyond two Google Fonts, and runs from a folder on d
   The plain scroll wheel is left to the page. Zooming in makes room for more landmark names.
 - **The timeline** runs down the left of the globe, youngest at the top like a rock column.
 - **Sites.** About fifty clickable places, each with a then/now panel.
+- **Animals.** Six to ten animals for each period, spread across sea, fresh water, land and
+  air, each with a size comparison, why it matters, and a fossil locality pinned to its plate.
+  Clicking one turns the globe to that locality and pulses it. An animal that a site already
+  describes links through to it. Silhouettes come from PhyloPic under CC0 or CC BY.
 - **Comparisons.** Pairs and sets of places that look alike, sorted into *inherited*
   (alike because they were once joined, such as the Dwyka, Itararé and Talchir glacial
   beds) and *convergent* (alike for other reasons, such as the Atacama and the Namib).
@@ -71,6 +75,7 @@ css/globe.css       all styles
 js/geometry.js      spherical maths, plate outlines (PLATES), icon drawings (ICONS)
 js/data.js          PERIODS, COMPARISONS, COLUMNS, LANDMARKS, PERIOD_LABELS: all content
 js/terrain.js       BIOMES, BELTS, LANDCOVER, RIVERS, LAKES, RANGES, SEAS: what colours the land
+js/animals.js       ANIMALS: the animals of each period
 js/sources.js       SOURCES: every reference, numbered; SILHOUETTES: image credits
 js/app.js           runtime: drawing, camera, panel modes, controls
 sources.html        the numbered reference list (rendered by js/sources-page.js)
@@ -170,6 +175,28 @@ ARID_OVERRIDES.dev = [{ plate:"EUR", name:"...", source:"Old Red Sandstone ...",
 { plate:"SIB", name:"Urals", from:"per", pts:[...] }              // RANGES; optional to:"jur"
 SEAS.cre = [{ plate:"NAM", name:"Western Interior Seaway", pts:[...] }]
 ```
+
+### An animal
+
+Add an entry to `ANIMALS[<period id>]` in `js/animals.js`.
+
+```js
+{ genus:"Dunkleosteus", group:"armoured fish",   // shown as "Dunkleosteus (armoured fish)"
+  habitat:"marine",                              // marine | freshwater | land | air
+  environment:"One sentence on where it lived.",
+  size:"A comparison a reader can picture, with the measurement.",
+  matters:"One sentence on why it matters for this period.",
+  plate:"NAM", lon:-81.7, lat:41.4,              // a well-known locality, modern coordinates
+  place:"Cleveland Shale, northeast Ohio",
+  site:null,                                     // title of a site in the same period, or null
+  img:null,                                      // "img/animals/<genus>.svg", or null for a habitat icon
+  sources:[7, 8] }
+```
+
+A silhouette may be used only if PhyloPic gives it as CC0 or CC BY. Save the SVG under
+`img/animals/` and add a line to `SILHOUETTES` in `js/sources.js` recording the licence,
+the contributor and the image page. `npm test` checks that every file referenced exists
+and is credited.
 
 ### A comparison
 
