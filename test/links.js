@@ -23,7 +23,15 @@ async function check(url){
     const r = await fetch(url, { headers:{ "User-Agent":UA, "Accept":"text/html,*/*" }, redirect:"follow",
                                  signal: AbortSignal.timeout(30000) });
     return r.status < 400 ? "ok" : "HTTP " + r.status;
-  } catch (e){ return "error: " + (e.cause && e.cause.code || e.name); }
+  } catch (e){
+    /* Node ships fewer intermediate certificates than a browser; ask curl before failing */
+    try {
+      const code = require("child_process").execFileSync("curl", ["-s", "-o", "/dev/null", "-L", "-A", UA,
+        "-w", "%{http_code}", "--max-time", "30", url]).toString();
+      if (+code >= 200 && +code < 400) return "ok";
+    } catch (e2) {}
+    return "error: " + (e.cause && e.cause.code || e.name);
+  }
 }
 
 (async function(){
