@@ -23,30 +23,40 @@
 
   <div class="stage">
     <div class="globe-cell">
-      <div class="globe-frame">
-        <svg id="globe" viewBox="0 0 620 620" role="img" tabindex="0"
-             aria-label="Rotatable globe showing the Earth's continents in the selected geological period"></svg>
-        <div class="era-stamp">
-          <span class="swatch" id="stampSwatch"></span>
-          <span class="name" id="stampName">Cambrian</span>
-          <span class="age" id="stampAge">510 Ma</span>
-        </div>
-        <div class="globe-hint" id="globeHint">Drag to spin</div>
-      </div>
+      <nav class="ribbon-wrap" aria-label="Timeline">
+        <button class="play" id="playBtn" aria-label="Play through time">
+          <svg width="10" height="12" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z" fill="currentColor"/></svg>
+          <span id="playLabel">Play</span>
+        </button>
+        <div class="ribbon" id="ribbon" role="tablist" aria-label="Geological periods"></div>
+      </nav>
 
-      <div class="views">
-        <button class="chip" data-view="-30,-60">South pole</button>
-        <button class="chip" data-view="0,55">North pole</button>
-        <button class="chip" data-view="-30,10">Atlantic</button>
-        <button class="chip" data-view="170,0">Pacific</button>
-        <span class="rule" aria-hidden="true"></span>
-        <button class="chip" id="modeCompare" aria-pressed="false">Comparisons</button>
-        <button class="chip" id="modeLayers" aria-pressed="false">Layers</button>
-        <span class="togs">
-          <button class="chip tog" id="togIce" aria-pressed="true">Ice</button>
-          <button class="chip tog" id="togGrid" aria-pressed="true">Grid</button>
-          <button class="chip tog" id="togSpin" aria-pressed="true">Auto-spin</button>
-        </span>
+      <div class="globe-main">
+        <div class="globe-frame">
+          <svg id="globe" viewBox="0 0 620 620" role="img" tabindex="0"
+               aria-label="Rotatable globe showing the Earth's continents in the selected geological period"></svg>
+          <div class="era-stamp">
+            <span class="swatch" id="stampSwatch"></span>
+            <span class="name" id="stampName">Cambrian</span>
+            <span class="age" id="stampAge">510 Ma</span>
+          </div>
+          <div class="globe-hint" id="globeHint">Drag to spin</div>
+        </div>
+
+        <div class="views">
+          <button class="chip" data-view="-30,-60">South pole</button>
+          <button class="chip" data-view="0,55">North pole</button>
+          <button class="chip" data-view="-30,10">Atlantic</button>
+          <button class="chip" data-view="170,0">Pacific</button>
+          <span class="rule" aria-hidden="true"></span>
+          <button class="chip" id="modeCompare" aria-pressed="false">Comparisons</button>
+          <button class="chip" id="modeLayers" aria-pressed="false">Layers</button>
+          <span class="togs">
+            <button class="chip tog" id="togIce" aria-pressed="true">Ice</button>
+            <button class="chip tog" id="togGrid" aria-pressed="true">Grid</button>
+            <button class="chip tog" id="togSpin" aria-pressed="true">Auto-spin</button>
+          </span>
+        </div>
       </div>
     </div>
 
@@ -55,19 +65,8 @@
     </aside>
   </div>
 
-  <div class="ribbon-wrap">
-    <div class="ribbon-top">
-      <button class="play" id="playBtn" aria-label="Play through time">
-        <svg width="10" height="12" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z" fill="currentColor"/></svg>
-        <span id="playLabel">Play</span>
-      </button>
-      <span class="ribbon-note">Colours follow the international geological timescale.</span>
-    </div>
-    <div class="ribbon" id="ribbon" role="tablist" aria-label="Geological periods"></div>
-  </div>
-
   <footer class="foot">
-    Positions are schematic. Plate reconstructions before about 200 million years ago are
+    Timeline colours follow the international geological timescale. Positions are schematic. Plate reconstructions before about 200 million years ago are
     reconstructed from palaeomagnetism and rock matching, and different research groups draw them
     differently — the arrangement here follows the broad consensus rather than any single published model.
   </footer>

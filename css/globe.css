@@ -75,13 +75,13 @@ body::before{
 /* ---------- stage ---------- */
 .stage{
   display:grid;
-  grid-template-columns: minmax(0,1.08fr) minmax(320px,.92fr);
+  grid-template-columns: minmax(0,1.3fr) minmax(320px,.9fr);
   gap:22px;
   align-items:start;
 }
 @media (max-width:900px){ .stage{grid-template-columns:1fr; gap:16px;} }
 
-.globe-cell{position:relative;}
+.globe-cell{position:relative; min-width:0;}
 /* two-column layout: keep the globe beside long panels, sized to fit the window */
 @media (min-width:901px) and (min-height:560px){
   .globe-cell{position:sticky; top:14px;}
@@ -227,38 +227,39 @@ body::before{
 .tn p{margin:0; font-size:13.5px; color:#C4D2DC; line-height:1.5;}
 .tn .where{font-size:12.5px; color:var(--text-faint); margin:0 0 6px;}
 
-/* ---------- timeline ribbon ---------- */
-.ribbon-wrap{margin:20px 0 0; padding-bottom:26px;}
-.ribbon-top{
-  display:flex; align-items:center; gap:12px; margin-bottom:9px;
-}
+/* ---------- timeline ---------- */
+/* A vertical list to the left of the globe, youngest at the top like a rock
+   column. On a phone it becomes a scrolling strip above the globe.          */
+.globe-cell{display:flex; gap:12px; align-items:stretch;}
+.globe-main{flex:1 1 auto; min-width:0;}
+.ribbon-wrap{flex:0 0 116px; display:flex; flex-direction:column; gap:8px; min-width:0;}
 .play{
   font:inherit; font-size:13px; color:var(--text); cursor:pointer;
   background:var(--shelf-2); border:1px solid var(--line);
   border-radius:var(--radius); padding:6px 13px 6px 11px;
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
 }
 .play:hover{border-color:#3B4E5D;}
 .play:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
 .play svg{display:block;}
-.ribbon-note{font-size:12px; color:var(--text-faint);}
 
 .ribbon{
-  display:flex; width:100%; border:1px solid var(--line);
-  border-radius:var(--radius); overflow:hidden; background:var(--shelf);
+  flex:1 1 auto; display:flex; flex-direction:column-reverse;
+  border:1px solid var(--line); border-radius:var(--radius);
+  overflow:hidden; background:var(--shelf);
 }
 .seg{
-  position:relative; flex:1 1 auto; min-width:0;
-  background:transparent; border:0; border-right:1px solid var(--void);
-  padding:0; cursor:pointer; font:inherit; color:var(--text-dim);
-  display:flex; flex-direction:column; justify-content:flex-end;
-  height:58px; transition:color .18s ease;
+  position:relative; flex:1 1 0; min-height:36px; min-width:0;
+  background:transparent; border:0; border-top:1px solid var(--void);
+  padding:0; cursor:pointer; font:inherit; color:var(--text-dim); text-align:left;
+  display:flex; flex-direction:row; align-items:stretch;
+  transition:color .18s ease;
 }
-.seg:last-child{border-right:0;}
-.seg .bar{height:7px; width:100%; opacity:.55; transition:opacity .22s ease, height .22s ease;}
+.seg:last-child{border-top:0;}
+.seg .bar{flex:0 0 auto; width:7px; opacity:.55; transition:opacity .22s ease, width .22s ease;}
 .seg .lab{
-  font-size:11.5px; padding:7px 5px 8px; line-height:1.15;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  align-self:center; font-size:12px; padding:0 6px 0 9px; line-height:1.2;
+  min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .seg .ma{
   display:block; font-size:10.5px; color:var(--text-faint);
@@ -267,12 +268,22 @@ body::before{
 .seg:hover{color:var(--text);}
 .seg:hover .bar{opacity:.85;}
 .seg:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
-.seg[aria-current="true"]{color:var(--text);}
-.seg[aria-current="true"] .bar{opacity:1; height:13px;}
+.seg[aria-current="true"]{color:var(--text); background:var(--shelf-2);}
+.seg[aria-current="true"] .bar{opacity:1; width:13px;}
 .seg[aria-current="true"] .lab{color:var(--text);}
-@media (max-width:760px){
-  .ribbon{overflow-x:auto; overflow-y:hidden;}
-  .seg{flex:0 0 96px;}
+
+@media (max-width:640px){
+  .globe-cell{flex-direction:column;}
+  .ribbon-wrap{flex:0 0 auto; flex-direction:row; align-items:stretch;}
+  .ribbon{flex-direction:row; overflow-x:auto; overflow-y:hidden;}
+  .seg{
+    flex:0 0 92px; height:54px; min-height:0; flex-direction:column; justify-content:flex-end;
+    border-top:0; border-right:1px solid var(--void);
+  }
+  .seg:last-child{border-right:0;}
+  .seg .bar{width:100%; height:7px; transition:opacity .22s ease, height .22s ease;}
+  .seg .lab{align-self:stretch; padding:7px 5px 8px;}
+  .seg[aria-current="true"] .bar{width:100%; height:13px;}
 }
 
 /* ---------- about ---------- */

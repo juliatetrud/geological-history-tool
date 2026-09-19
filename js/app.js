@@ -5,7 +5,10 @@ const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let idx = PERIODS.length - 1;      // start at Today
 let fromIdx = idx, tMix = 1;        // drift interpolation
-let driftStart = 0, driftDur = reduced ? 1 : 1500;
+/* pacing: plate drift and camera moves in milliseconds, spin in degrees per
+   second (timed, so a 120 Hz screen does not spin twice as fast)           */
+const DRIFT_MS = 3000, CAM_MS = 1800, SPIN_DEG_S = 1.65, PLAY_MS = 7000;
+let driftStart = 0, driftDur = reduced ? 1 : DRIFT_MS, lastFrame = 0;
 let camTarget = null, camStart = 0, camFrom = null;
 let spinning = !reduced, dragging = false, playing = false, playTimer = null;
 let showIce = true, showGrid = true;
@@ -196,17 +199,19 @@ function draw(){
 
 /* ===================== animation loop ===================== */
 function frame(now){
+  const dt = lastFrame ? Math.min(100, now - lastFrame) : 16;
+  lastFrame = now;
   if (tMix < 1){
     tMix = Math.min(1, (now - driftStart) / driftDur);
   }
   if (camTarget){
-    const k = Math.min(1, (now - camStart) / (reduced ? 1 : 900));
+    const k = Math.min(1, (now - camStart) / (reduced ? 1 : CAM_MS));
     const e = ease(k);
     viewLon = camFrom[0] + shortDelta(camTarget[0] - camFrom[0]) * e;
     viewLat = camFrom[1] + (camTarget[1] - camFrom[1]) * e;
     if (k >= 1) camTarget = null;
   } else if (spinning && !dragging){
-    viewLon += 0.055;
+    viewLon += SPIN_DEG_S * dt / 1000;
   }
   if (viewLon > 180) viewLon -= 360; if (viewLon < -180) viewLon += 360;
   draw();
@@ -360,7 +365,7 @@ function showPlaces(pi, places){
   camFrom = [viewLon, viewLat]; camStart = performance.now();
   camTarget = [lon, Math.max(-72, Math.min(72, lat))];
   for (const h of highlights) h.pulse = places.indexOf(h.place) >= 0;
-  pulseStart = performance.now() + (reduced ? 0 : changed ? 1500 : 700);
+  pulseStart = performance.now() + (reduced ? 0 : changed ? DRIFT_MS : CAM_MS * .8);
   hideHint();
 }
 function scrollToGlobe(){
@@ -458,7 +463,7 @@ function showComparison(c, one){
     : cmpSteps(c).map(s => ({ pid:s.pid, places:s.places.map(pl => live[c.places.indexOf(pl)]) }));
   (function run(k){
     showPlaces(periodIndex(steps[k].pid), steps[k].places);
-    if (k + 1 < steps.length) seqTimer = setTimeout(() => run(k + 1), 5200);
+    if (k + 1 < steps.length) seqTimer = setTimeout(() => run(k + 1), DRIFT_MS + PULSE_MS + 1200);
   })(0);
   scrollToGlobe();
 }
@@ -647,7 +652,7 @@ function renderLayerCard(){
   const L = activeLayer == null ? null : COLUMNS[colIdx].layers[activeLayer];
   if (!L){
     card.innerHTML = '<p class="lc-empty">Click a layer. The globe moves to that period and marks ' +
-      'where the column stands. Layer colours match the timeline below the globe.</p>';
+      'where the column stands. Layer colours match the timeline beside the globe.</p>';
     return;
   }
   const p = L.period ? PERIODS[periodIndex(L.period)] : null;
@@ -709,13 +714,14 @@ function setPeriod(next, instant){
   if (next === idx) return;
   fromIdx = idx; idx = next; tMix = 0;
   driftStart = performance.now();
-  driftDur = (reduced || instant) ? 1 : 1500;
+  driftDur = (reduced || instant) ? 1 : DRIFT_MS;
   const p = PERIODS[idx];
   document.documentElement.style.setProperty("--accent", p.accent);
   document.getElementById("stampName").textContent = p.name;
   document.getElementById("stampAge").textContent = p.ma === 0 ? "present" : p.ma + " Ma";
   document.querySelectorAll(".seg").forEach((b, i) =>
     b.setAttribute("aria-current", i === idx ? "true" : "false"));
+  revealSeg();
   buildPeriod();
   if (mode === "compare" || mode === "layers"){ selected = null; refreshMode(); }
   else renderPeriod();
@@ -738,6 +744,14 @@ PERIODS.forEach((p, i) => {
   ribbon.appendChild(b);
 });
 
+/* on a phone the timeline is a scrolling strip: keep the current period in it */
+function revealSeg(){
+  const cur = ribbon.children[idx];
+  if (!cur || ribbon.scrollWidth <= ribbon.clientWidth) return;
+  ribbon.scrollLeft = cur.offsetLeft - ribbon.offsetLeft - (ribbon.clientWidth - cur.offsetWidth) / 2;
+}
+revealSeg();
+
 /* ===================== controls ===================== */
 const playBtn = document.getElementById("playBtn"), playLabel = document.getElementById("playLabel");
 function stopPlay(){
@@ -752,7 +766,7 @@ playBtn.addEventListener("click", () => {
   playTimer = setInterval(() => {
     if (idx >= PERIODS.length - 1){ stopPlay(); return; }
     setPeriod(idx + 1);
-  }, 4200);
+  }, PLAY_MS);
 });
 
 document.querySelectorAll("[data-view]").forEach(b => {
