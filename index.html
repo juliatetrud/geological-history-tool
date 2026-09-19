@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deep Time Globe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/globe.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <h1 class="mark">Deep Time <em>Globe</em></h1>
+    <p class="tag">Half a billion years of continents, forests, ice and animals. Drag the globe. Click a marker.</p>
+    <div class="masthead-actions">
+      <button class="chip" id="aboutBtn">About</button>
+    </div>
+  </header>
+
+  <div class="stage">
+    <div class="globe-cell">
+      <div class="globe-frame">
+        <svg id="globe" viewBox="0 0 620 620" role="img" tabindex="0"
+             aria-label="Rotatable globe showing the Earth's continents in the selected geological period"></svg>
+        <div class="era-stamp">
+          <span class="swatch" id="stampSwatch"></span>
+          <span class="name" id="stampName">Cambrian</span>
+          <span class="age" id="stampAge">510 Ma</span>
+        </div>
+        <div class="globe-hint" id="globeHint">Drag to spin</div>
+      </div>
+
+      <div class="views">
+        <button class="chip" data-view="-30,-60">South pole</button>
+        <button class="chip" data-view="0,55">North pole</button>
+        <button class="chip" data-view="-30,10">Atlantic</button>
+        <button class="chip" data-view="170,0">Pacific</button>
+        <span class="spacer"></span>
+        <button class="chip tog" id="togIce" aria-pressed="true">Ice</button>
+        <button class="chip tog" id="togGrid" aria-pressed="true">Grid</button>
+        <button class="chip tog" id="togSpin" aria-pressed="true">Auto-spin</button>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <div class="panel-scroll" id="panel"></div>
+    </aside>
+  </div>
+
+  <div class="ribbon-wrap">
+    <div class="ribbon-top">
+      <button class="play" id="playBtn" aria-label="Play through time">
+        <svg width="10" height="12" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z" fill="currentColor"/></svg>
+        <span id="playLabel">Play</span>
+      </button>
+      <span class="ribbon-note">Colours follow the international geological timescale.</span>
+    </div>
+    <div class="ribbon" id="ribbon" role="tablist" aria-label="Geological periods"></div>
+  </div>
+
+  <footer class="foot">
+    Positions are schematic. Plate reconstructions before about 200 million years ago are
+    reconstructed from palaeomagnetism and rock matching, and different research groups draw them
+    differently — the arrangement here follows the broad consensus rather than any single published model.
+  </footer>
+</div>
+
+<dialog class="about" id="aboutDlg">
+  <div class="about-in">
+    <h2>How to read this globe</h2>
+    <p>Each continent is treated as a rigid plate. Moving through the timeline rotates those plates
+    across the sphere, so you are watching the same pieces of crust travel rather than new shapes
+    being drawn. Coastlines are modern ones — a real Devonian coastline sat far inland of these edges,
+    because shallow seas flooded most continental interiors.</p>
+    <p>The poles stay fixed at the top and bottom of the sphere. Anything sitting there was, at that
+    moment, polar: that is how the Sahara ends up under an ice sheet and Antarctica ends up covered
+    in forest.</p>
+    <p>Markers are pinned to their plate, so a fossil site drifts with the ground it sits in. Each one
+    describes the place then and what grows there now.</p>
+    <div class="legend">
+      <span><i style="background:var(--fossil)"></i>Animals and fossil beds</span>
+      <span><i style="background:var(--forest)"></i>Plants and forests</span>
+      <span><i style="background:var(--event)"></i>Tectonics and climate</span>
+      <span><i style="background:var(--ice-c)"></i>Ice</span>
+      <span><i style="background:var(--sea-c)"></i>Seas</span>
+    </div>
+    <p style="margin-top:18px"><button class="close" id="aboutClose">Close</button></p>
+  </div>
+</dialog>
+
+<script src="js/geometry.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
