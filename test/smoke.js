@@ -66,7 +66,15 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
           (!L.to || PERIODS.some(p => p.id === L.to)) &&
           (L.marker || L.gap || (L.env && L.thick && L.age))))`),
      "column layers reference real periods and carry env, age and thickness");
-  ok(!/!/.test(run("JSON.stringify([COMPARISONS, COLUMNS, PERIODS.map(p => p.strata)])")), "no exclamation marks in the new prose");
+  /* house voice (see SKILL.md): no exclamation marks, no dashes used as punctuation,
+     no "not just / not merely" antithesis, none of the stock vocabulary            */
+  const prose = run("JSON.stringify([PERIODS.map(p => [p.headline, p.body, p.facts, p.strata, p.sites.map(s => [s.title, s.sub, s.body, s.then, s.now])]), COMPARE_GROUPS, COMPARISONS, COLUMNS, LANDMARKS, PERIOD_LABELS])") +
+    doc.body.textContent;
+  ok(!/!/.test(prose), "no exclamation marks in the copy");
+  ok(!/\u2014| \u2013 | - /.test(prose), "no em dashes, spaced en dashes or spaced hyphens in the copy");
+  const stock = prose.match(/\b(delve|tapestry|testament to|journey|unlock|harness|realm|profound|remarkable|fascinating|intricate dance|weaves together|lies at the heart|paints a picture|serves as a reminder|arguably|notably|not just|not merely|more than just|isn't just)\b/gi);
+  ok(!stock, "no stock vocabulary or antithesis markers" + (stock ? ": " + stock.join(", ") : ""));
+  ok(run("PERIODS.every(p => p.body.join(' ').split(/(?<=[.])\\s+/).length <= 5)"), "period descriptions run to five sentences at most");
 
   console.log("globe");
   const landOK = () => {

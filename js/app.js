@@ -237,7 +237,7 @@ function renderPeriod(){
     '<ul class="facts">' + p.facts.concat([["Rock record", p.strata]]).map(f =>
       '<li><span class="k">' + esc(f[0]) + '</span><span class="v">' + esc(f[1]) + '</span></li>'
     ).join("") + '</ul>' +
-    '<p class="sites-title">Places on this globe — click a marker or a name</p>' +
+    '<p class="sites-title">Places on this globe. Click a marker or a name.</p>' +
     '<ul class="sites">' + p.sites.map((s, n) =>
       '<li><button class="site-btn" data-n="' + n + '">' +
       '<span class="pin" style="background:' + CAT_COLOUR[s.cat] + '"></span>' +
@@ -556,8 +556,8 @@ function renderCompare(){
     '<p class="kicker">Comparisons</p>' +
     '<h2 class="p-head">Look-alikes and relatives</h2>' +
     '<p class="p-body">Two places can resemble each other because they used to be one place, ' +
-    'or because the same conditions produced the same result twice. Putting the continents ' +
-    'back where they were is how you tell which.</p>' +
+    'or because the same conditions produced the same result twice. Put the continents back ' +
+    'where they were and the globe shows which.</p>' +
     COMPARE_GROUPS.map(g =>
       '<h3 class="grp-title">' + esc(g.title) + '</h3>' +
       '<p class="grp-sub">' + esc(g.sub) + '</p>' +
@@ -830,9 +830,9 @@ function renderLayers(locate){
     '<div class="layer-card" id="layerCard" aria-live="polite"></div>' +
     '<div class="col-scroll" id="colScroll" tabindex="0" aria-label="Stratigraphic column, scrollable"></div>' +
     '<p class="col-note"><span class="scalebar" style="height:' + (100 * COL_SCALE) + 'px"></span>' +
-    '<span>The bar is 100 m of rock. Oldest at the bottom. Thin layers are drawn at a legible minimum, ' +
-    'the thickest are cut short with a zigzag, and wavy breaks are unconformities: time with no rock ' +
-    'to show for it.</span></p></div>';
+    '<span>The bar is 100 m of rock, and the oldest layer is at the bottom. Thin layers are drawn at a ' +
+    'legible minimum and the thickest are cut short with a zigzag. A wavy break is an unconformity, a ' +
+    'span of time that left no rock here.</span></p></div>';
   panel.querySelector(".back").addEventListener("click", renderPeriod);
   panel.querySelectorAll(".col-switch .chip").forEach(b => b.addEventListener("click", () => {
     if (+b.dataset.k === colIdx) return;
