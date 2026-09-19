@@ -1,0 +1,194 @@
+# Deep Time Globe
+
+An interactive globe of the last half billion years. Drag it, step through eleven
+geological periods from the Cambrian to today, and watch the continents travel.
+Markers pin fossil beds, forests, ice sheets and tectonic events to the ground they
+sit on, and each one describes the place then and what grows there now.
+
+It is a teaching tool. It is written in plain JavaScript and SVG, has no build step
+and no runtime dependencies beyond two Google Fonts, and runs from a folder on disk.
+
+## What is in it
+
+- **The globe.** An orthographic sphere with ten rigid plates. Period colours follow
+  the International Commission on Stratigraphy timescale, and the page accent follows
+  the colour of the current period.
+- **Sites.** About fifty clickable places, each with a then/now panel.
+- **Comparisons.** Pairs and sets of places that look alike, sorted into *inherited*
+  (alike because they were once joined, such as the Dwyka, Itararé and Talchir glacial
+  beds) and *convergent* (alike for other reasons, such as the Atacama and the Namib).
+  Each one turns the globe to the places involved and pulses them. Inherited places
+  stay marked as you move through the timeline, so you can watch them separate.
+- **Layers.** Two stratigraphic columns, the Grand Canyon with the Grand Staircase and
+  southern England from Somerset to Dover, drawn in the same colours as the timeline.
+  Click a layer to see where that ground was when the rock was laid down.
+  Unconformities are drawn as wavy breaks.
+- **Rock record.** Each period's fact list ends with the kind of rock typically being
+  laid down at the time and where to see it.
+
+## Run it locally
+
+Open `index.html` in a browser. That is all.
+
+The scripts are ordinary `<script>` tags loaded in order, not ES modules, so the page
+works from `file://` as well as from a web server.
+
+## Tests
+
+```
+npm install
+npm test
+```
+
+`test/smoke.js` loads the page in jsdom and checks that land paths have geometry in
+every period, markers exist, all four panel modes render, the comparisons and columns
+drive the globe, and the plate outlines and poses still match their recorded hashes.
+`node test/smoke.js --reduced` runs the same checks with `prefers-reduced-motion` set.
+jsdom is a devDependency only; nothing from `node_modules` is used by the site.
+
+## Layout
+
+```
+index.html          page structure
+css/globe.css       all styles
+js/geometry.js      spherical maths, plate outlines (PLATES), icon drawings (ICONS)
+js/data.js          PERIODS, COMPARISONS, COLUMNS: all content
+js/app.js           runtime: drawing, camera, panel modes, controls
+test/smoke.js       jsdom smoke test
+.github/workflows/pages.yml   test, then deploy the repo root to GitHub Pages
+```
+
+## How the reconstruction works
+
+Each continent is a rigid plate: a simplified modern coastline stored as longitude and
+latitude and converted once to unit vectors on a sphere. A plate's position in a given
+period is a *pose* of three numbers, `[centre longitude, centre latitude, spin]`. The
+transform spins the plate about its own modern centre, then carries that centre along
+a great circle to its new position (two Rodrigues rotations, in `plateTransform`).
+Moving between periods interpolates the pose, so you are watching the same pieces of
+crust travel rather than new shapes being drawn.
+
+The poses were not placed by eye. Gondwana (Africa, South America, India, Australia,
+Antarctica, Madagascar) and Laurasia were first fitted as assemblies, so that their
+pieces stay locked together for as long as they were joined. The pose of each plate
+or assembly in each period was then solved numerically against paleolatitude evidence:
+where the pole was, which margins were tropical, where the ice and the coal were.
+
+Sites, comparison places and column locations are pinned to a plate at their modern
+coordinates and carried through the same transform, which is why a fossil bed drifts
+with the ground it sits in.
+
+**Positions are schematic**, and more so the further back you go. Before about
+200 million years ago there is no surviving ocean floor to measure, and reconstructions
+rest on paleomagnetism, which gives latitude but not longitude, and on matching rocks
+and fossils. Published models differ. This one follows the broad consensus rather than
+any single model, and is not a source for distances or for plate boundaries.
+
+Please do not edit `PLATES` or the `plates` poses in `PERIODS` casually. The smoke test
+pins both with a hash so that any change is a deliberate one.
+
+## Adding content
+
+All content lives in `js/data.js`.
+
+### A site
+
+Add an object to the `sites` array of a period. Coordinates are **modern** longitude
+and latitude; the plate carries the site to where it was.
+
+```js
+{ plate:"NAM",                 // NAM EUR SIB CHI IND AFR SAM AUS ANT MAD
+  lon:-116.5, lat:51.4,        // modern position, degrees; west and south negative
+  cat:"fossil",                // fossil | forest | event | ice | sea  (marker colour)
+  title:"Burgess Shale",
+  sub:"508 million years old",
+  body:"One paragraph.",
+  then:{ where:"Equatorial sea floor", icon:"reef", text:"One or two sentences." },
+  now: { where:"Yoho National Park, British Columbia", icon:"conifer", text:"..." } }
+```
+
+`icon` is a key of `ICONS` in `js/geometry.js`: `bare microbe moss lycopod fern conifer
+cycad broadleaf palm grass scrub dune ice tundra taiga sea reef volcano city swamp`.
+
+### A period field
+
+Each period has `id`, `name`, `ma`, `span`, `colour` (ICS), `accent`, `view`
+(the camera's starting longitude and latitude), `headline`, `body`, `facts`,
+`strata` (the "Rock record" sentence), `plates`, `ice` and `sites`.
+
+### A comparison
+
+```js
+{ id:"mesosaurus",
+  group:"inherited",           // inherited | convergent
+  period:"per",                // the period id that shows it best
+  title:"Mesosaurus",
+  body:"Two or three sentences.",
+  places:[
+    { plate:"SAM", lon:-50.5, lat:-25.5, label:"Irati Formation, Brazil", short:"Brazil" },
+    { plate:"AFR", lon:18.5,  lat:-26.5, label:"Whitehill Formation, Namibia", short:"Namibia" }
+  ] }
+```
+
+`label` appears in the panel and `short` on the globe. A place can carry its own
+`period` when the two halves of a comparison belong to different times (see the
+Sahara and Antarctica entry); the globe then shows them one after the other.
+
+### A column layer
+
+Layers run **bottom to top**.
+
+```js
+{ name:"Coconino Sandstone",
+  age:"Permian",               // label shown under the name
+  period:"per",                // period id; null if older than the timeline
+  to:"tri",                    // optional: unit spans into a younger period
+  lith:"sandstone",            // sandstone shale limestone chalk coal mixed crystalline till
+  m:100,                       // metres, used for drawing; null draws a fixed block
+  env:"One sentence on the environment.",
+  thick:"About 100 m" }
+
+{ gap:true, name:"Great Unconformity", age:"Precambrian to Cambrian",
+  period:null, note:"About 1 billion years missing", env:"One or two sentences." }
+
+{ marker:true, name:"Canyon rim", note:"A labelled line with no thickness." }
+```
+
+Thickness is drawn at 0.3 pixels per metre. Thin layers are held to a height that fits
+their label, and anything over 500 m is cut short and marked with a zigzag.
+
+## Accessibility
+
+Markers, layers and places are keyboard reachable, and the globe turns with the arrow
+keys. With `prefers-reduced-motion` the globe does not auto-spin, period changes and
+camera moves are instant, and the location pulse is a static ring.
+
+## Caveats
+
+- Coastlines are modern ones. Real coastlines of the past sat far inland of these
+  edges, because shallow seas flooded most continental interiors for much of the time.
+- Ten plates stand in for a much more complicated picture. Britain rides with Europe
+  although Scotland began on Laurentia. New Zealand, Tasmania and New Guinea ride on
+  the Australian plate and Puerto Rico on the North American plate, and none of them
+  has an outline.
+- Each period is shown at a single moment (for example the Carboniferous at 310 Ma),
+  so a rock unit from early or late in a period is shown on a globe that is some
+  tens of millions of years off.
+- Layer thicknesses are approximate and vary from place to place. The columns are
+  composites: no single cliff shows every layer.
+- Ice sheets are drawn as simple circles.
+
+## Credits
+
+Concept, research and text by Julia Tetrud. Period colours are those of the
+International Commission on Stratigraphy's International Chronostratigraphic Chart.
+Typefaces are Newsreader and IBM Plex Sans, served by Google Fonts under the SIL Open
+Font License. The refactor into a repository and the Comparisons and Layers features
+were built with Claude Code.
+
+## Licence
+
+Code is released under the **MIT License**. Content, meaning the texts, the
+comparisons and columns, the plate outlines and poses, and the icon drawings, is
+released under **Creative Commons Attribution 4.0 International (CC BY 4.0)**.
+See [LICENSE](LICENSE).
