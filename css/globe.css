@@ -407,10 +407,10 @@ footer.foot{
 .an-group{font-weight:400; color:var(--text-dim);}
 .an-tag{
   display:flex; align-items:center; flex-wrap:wrap; gap:0 6px;
-  font-size:12.5px; color:var(--accent); margin:0 0 6px; transition:color .4s ease;
+  font-size:12.5px; color:var(--accent); margin:0 0 3px; transition:color .4s ease;
 }
 .an-tag svg{width:14px; height:14px; flex:0 0 auto;}
-.an-size{color:var(--text-faint);}
+.an-size{font-size:12.5px; color:var(--text-faint); margin:0 0 7px;}
 .an-site{margin-top:9px;}
 @media (max-width:420px){ .animal{grid-template-columns:44px minmax(0,1fr); gap:10px; margin-left:-12px; padding-left:10px;} .an-pic{width:44px;} .an-pic img{max-width:44px;} }
 

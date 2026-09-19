@@ -153,7 +153,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const labelTexts = () => [...doc.querySelectorAll("#gLabel text")].map(t => t.textContent);
   run("setPeriod(" + ids.indexOf("per") + ", true); tMix = 1; draw();");
   ok(labelTexts().includes("now the Appalachian Mts."), 'Permian globe carries "now the Appalachian Mts."');
-  ok(labelTexts().includes("PANGAEA") && labelTexts().includes("Tethys Ocean"), "Permian names Pangaea and the Tethys");
+  ok(labelTexts().includes("PANGAEA") && labelTexts().includes("Paleo-Tethys"), "Permian names Pangaea and the Paleo-Tethys");
   run("setPeriod(" + ids.indexOf("now") + ", true); tMix = 1; draw();");
   ok(labelTexts().includes("Appalachian Mts.") && !labelTexts().some(t => /^now /.test(t)), 'today the landmarks drop the word "now"');
   ok(run("LANDMARKS.every(m => PLATES[m.plate] && /^(mountain|forest|desert|ice|region|city)$/.test(m.kind))") &&

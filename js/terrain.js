@@ -5,7 +5,7 @@
    BELTS        for each past period, climate belts by latitude, south to
                 north: [from, to, biome]. They are fixed to the globe, so a
                 continent changes colour as it drifts through them. Before the
-                Devonian there were no land plants and the land stays bare.
+                Devonian land plants were small and sparse, and the land stays bare.
    ARID_OVERRIDES  for a past period, regions that the rock record shows were
                 arid whatever latitude they sat at. They are painted over the
                 belts in their own colour, and the key says where they come from.
@@ -19,7 +19,7 @@
    Shapes are clipped to the coastline, so they can overrun it freely.        */
 
 const BIOMES = {
-  bare:    { colour:"#C9A97B", name:"Bare rock, no land plants yet" },
+  bare:    { colour:"#C9A97B", name:"Bare rock, no forests yet" },
   frost:   { colour:"#B4AE9F", name:"Cold bare ground" },
   desert:  { colour:"#E2BA68", name:"Desert" },
   scrub:   { colour:"#B3B170", name:"Seasonally dry, open growth" },
@@ -197,7 +197,7 @@ const RANGES = [
   { plate:"AFR", name:"Mauritanides",        from:"car", to:"tri", pts:[[-15,17],[-13,23],[-10,28]] },
   { plate:"SIB", name:"Urals",               from:"per", pts:[[58,51],[59,56],[60,61],[62,65],[66,68]] },
   { plate:"AFR", name:"Cape Fold Belt",      from:"per", pts:[[18.5,-32.5],[20,-33.7],[24,-33.6],[27,-33]] },
-  { plate:"AUS", name:"Great Dividing Range", from:"per", pts:[[145,-17],[147,-22],[150,-27],[151,-31],[149,-35],[146.5,-37.5]] },
+  { plate:"AUS", name:"Great Dividing Range", from:"cre", pts:[[145,-17],[147,-22],[150,-27],[151,-31],[149,-35],[146.5,-37.5]] },
   { plate:"SAM", name:"Andes",               from:"cre", pts:[[-72,9],[-77,1],[-78,-6],[-75,-13],[-69,-18],[-68.5,-24],[-70,-32],[-71,-40],[-73,-48],[-70,-54]] },
   { plate:"NAM", name:"Rocky Mountains",     from:"cre", pts:[[-135,62],[-128,57],[-120,52],[-114,47],[-110,43],[-106,39],[-105.5,35]] },
   { plate:"NAM", name:"Sierra Nevada",       from:"cre", pts:[[-122,41],[-120,38.5],[-118,35.5]] },
@@ -212,7 +212,7 @@ const RANGES = [
   { plate:"EUR", name:"Apennines",           from:"pgn", pts:[[9,44.3],[12,43],[14,41.5],[16,40]] },
   { plate:"EUR", name:"Caucasus",            from:"pgn", pts:[[38,44],[42,43],[46,41.5]] },
   { plate:"AFR", name:"Atlas",               from:"pgn", pts:[[-9,30.5],[-5,32],[0,34],[6,35.5],[10,36]] },
-  { plate:"NAM", name:"Alaska Range",        from:"pgn", pts:[[-155,61.5],[-150,63],[-144,62.5]] },
+  { plate:"NAM", name:"Alaska Range",        from:"now", pts:[[-155,61.5],[-150,63],[-144,62.5]] },
   { plate:"NAM", name:"Sierra Madre",        from:"pgn", pts:[[-108,29],[-105,24],[-101,19.5]] },
   { plate:"ANT", name:"Transantarctic Mountains", from:"pgn", pts:[[162,-72],[160,-77],[165,-82],[180,-85]] },
   { plate:"AFR", name:"East African highlands", from:"now", pts:[[38,14],[39,9],[36,4],[36,-3],[34,-9]] }

@@ -150,7 +150,7 @@ Each period has `id`, `name`, `ma`, `span`, `colour` (ICS), `accent`, `view`
 { plate:"AFR", lon:20, lat:5, text:"Gondwana" }
 
 // PERIOD_LABELS[periodId].oceans: fixed at [lon, lat] in that period's globe
-{ at:[66, 5], text:"Tethys Ocean" }
+{ at:[66, 5], text:"Paleo-Tethys" }
 ```
 
 Landmarks earlier in the list win when labels collide, and the first `LANDMARK_TOP`

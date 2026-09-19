@@ -794,8 +794,8 @@ function renderAnimals(){
           : '<svg viewBox="0 0 20 20" aria-hidden="true">' + h.icon + '</svg>') + '</div>' +
         '<div class="an-text">' +
         '<h4 class="cmp-t">' + esc(a.genus) + ' <span class="an-group">(' + esc(a.group) + ')</span></h4>' +
-        '<p class="an-tag"><svg viewBox="0 0 20 20" aria-hidden="true">' + h.icon + '</svg>' + esc(h.name) +
-        '<span class="an-size"> · ' + esc(a.size) + '</span></p>' +
+        '<p class="an-tag"><svg viewBox="0 0 20 20" aria-hidden="true">' + h.icon + '</svg>' + esc(h.name) + '</p>' +
+        '<p class="an-size">' + esc(a.size) + '</p>' +
         '<p class="cmp-b">' + esc(a.environment) + ' ' + esc(a.matters) + '</p>' +
         '<div class="cmp-act"><button class="chip go">Show on globe</button>' +
         '<span class="cmp-when">Found at ' + esc(a.place) + '</span></div>' +
