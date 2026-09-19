@@ -110,6 +110,16 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
           RANGES.every(m => PLATES[m.plate] && PERIODS.some(p => p.id === m.from) && (!m.to || PERIODS.some(p => p.id === m.to))) &&
           Object.keys(SEAS).every(k => PERIODS.some(p => p.id === k) && SEAS[k].every(s => PLATES[s.plate]))`),
      "land cover, rivers, ranges and seas reference real plates and periods");
+  ok(run(`Object.keys(ARID_OVERRIDES).every(k => BELTS[k] && ARID_OVERRIDES[k].every(o =>
+          PLATES[o.plate] && o.pts.length > 2 && o.name && o.source))`),
+     "arid overrides belong to belt periods, reference real plates and name their evidence");
+  let aridKeyOK = true;
+  for (const [id, want] of [["dev", true], ["ord", true], ["per", true], ["tri", true], ["car", false], ["now", false]]){
+    run("setPeriod(" + ids.indexOf(id) + ", true); tMix = 1; draw();");
+    const has = [...doc.querySelectorAll("#terrainKey li")].some(li => li.textContent === "Arid, from the rock record");
+    if (has !== want){ aridKeyOK = false; console.log("        arid key entry in " + id + " should be " + want); }
+  }
+  ok(aridKeyOK, "the key names the arid override only in periods that use it");
   let terrainOK = true;
   for (let i = 0; i < ids.length; i++){
     run("setPeriod(" + i + ", true); tMix = 1; draw();");

@@ -6,6 +6,9 @@
                 north: [from, to, biome]. They are fixed to the globe, so a
                 continent changes colour as it drifts through them. Before the
                 Devonian there were no land plants and the land stays bare.
+   ARID_OVERRIDES  for a past period, regions that the rock record shows were
+                arid whatever latitude they sat at. They are painted over the
+                belts in their own colour, and the key says where they come from.
    LANDCOVER    today only: real forests, deserts, tundra and ice, as
                 polygons of modern [lon, lat] pinned to a plate.
    RIVERS, LAKES  today only. Ancient river courses are mostly unknown.
@@ -26,7 +29,9 @@ const BIOMES = {
   forestC: { colour:"#4C7C68", name:"Cool and polar forest" },
   boreal:  { colour:"#4C7C68", name:"Boreal forest" },
   tundra:  { colour:"#A2A88E", name:"Tundra and high plateau" },
-  ice:     { colour:"#EAF2F6", name:"Ice sheet" }
+  ice:     { colour:"#EAF2F6", name:"Ice sheet" },
+  /* not a belt: painted from ARID_OVERRIDES, in the colour of a red bed */
+  aridRock:{ colour:"#D6905A", name:"Arid, from the rock record" }
 };
 const SEA_COLOUR = "#4E96B3", RIVER_COLOUR = "#5FB4DE";
 
@@ -48,6 +53,49 @@ const BELTS = {
         [15, 30, "desert"], [30, 60, "forestW"], [60, 90, "forestC"]],
   pgn: [[-90, -65, "forestC"], [-65, -33, "forestW"], [-33, -25, "desert"], [-25, 25, "forestT"],
         [25, 33, "desert"], [33, 65, "forestW"], [65, 90, "forestC"]]
+};
+
+/* Each entry names its evidence in `source`, which is for maintainers and is
+   not shown. Shapes are modern [lon, lat] pinned to a plate, like LANDCOVER. */
+const ARID_OVERRIDES = {
+  ord: [
+    { plate:"AFR", name:"North Africa, polar desert at the ice margin",
+      source:"Hirnantian tillites and glacial pavements from Mauritania to Libya; outwash sands beyond them",
+      pts:[[-17,12],[-17,21],[-12,28],[-4,35],[10,37],[20,32],[30,31],[35,24],[39,15],[43,11],[40,2],[30,-3],[18,-5],[9,-1],[3,5],[-5,4.5],[-13,8]] },
+    { plate:"AFR", name:"Arabia, polar desert at the ice margin",
+      source:"Late Ordovician glacial valleys of the Sarah Formation, Saudi Arabia",
+      pts:[[35,29],[38,22],[43,13],[50,13],[56,18],[59,23],[57,25],[48,29],[41,31]] }
+  ],
+  dev: [
+    { plate:"EUR", name:"Old Red Sandstone continent, Britain",
+      source:"Old Red Sandstone: red river and dune sandstones with calcrete soils",
+      pts:[[-7,50],[-2,50.5],[1.5,52],[-1,58.5],[-5.5,58.5],[-7,55],[-10,54],[-9,51]] },
+    { plate:"EUR", name:"Old Red Sandstone continent, Scandinavia",
+      source:"Old Red Sandstone basins of western Norway and the Baltic",
+      pts:[[4,58],[10,57],[18,56],[30,58],[34,64],[30,70],[20,70],[12,66],[5,62]] },
+    { plate:"NAM", name:"Old Red Sandstone continent, eastern North America",
+      source:"Catskill Delta red beds, from the Appalachian basin to the Maritimes",
+      pts:[[-84,36],[-76,36],[-68,43],[-58,47],[-56,52],[-64,52],[-74,47],[-82,43]] },
+    { plate:"NAM", name:"Old Red Sandstone continent, East Greenland",
+      source:"Devonian red beds of East Greenland",
+      pts:[[-30,69],[-21,70],[-19,75],[-26,78],[-30,74]] }
+  ],
+  per: [
+    { plate:"NAM", name:"Pangaean sand sea, American southwest",
+      source:"Coconino, De Chelly and Cedar Mesa dune sandstones",
+      pts:[[-118,42],[-104,42],[-100,34],[-104,29],[-112,30],[-117,34]] },
+    { plate:"EUR", name:"Pangaean sand sea, Britain and Germany",
+      source:"Penrith Sandstone and Rotliegend dune sandstones; Zechstein salt",
+      pts:[[-7,50],[0,49],[8,48],[15,49.5],[16,54],[8,56],[0,58],[-6,58],[-8,54]] }
+  ],
+  tri: [
+    { plate:"NAM", name:"Pangaean interior, American southwest",
+      source:"Moenkopi red beds and the Wingate dune sandstone",
+      pts:[[-118,42],[-104,42],[-100,34],[-104,29],[-112,30],[-117,34]] },
+    { plate:"EUR", name:"Pangaean interior, Britain and Germany",
+      source:"Sherwood Sandstone, Buntsandstein and the salt of the Mercia Mudstone",
+      pts:[[-7,50],[0,49],[8,48],[15,49.5],[16,54],[8,56],[0,58],[-6,58],[-8,54]] }
+  ]
 };
 
 const LANDCOVER = [

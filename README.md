@@ -21,7 +21,9 @@ and no runtime dependencies beyond two Google Fonts, and runs from a folder on d
   A toggle turns all labels off.
 - **Terrain.** Land is coloured by what grew on it. Before the Devonian it is bare rock. From
   the Devonian on, the colours follow climate belts fixed to the globe, so a continent changes
-  colour as it drifts from one latitude to another. Today's globe shows actual forests, deserts,
+  colour as it drifts from one latitude to another. Where the rocks show a region was arid
+  whatever its latitude, as with the Old Red Sandstone continent, it is painted red-brown and
+  the key labels it "Arid, from the rock record". Today's globe shows actual forests, deserts,
   tundra, ice, rivers and lakes. Mountain ranges appear in the period that raised them, and
   pale blue patches are shallow seas over a continent's interior. A key under the globe names
   the colours in use.
@@ -156,6 +158,8 @@ are always placed first. `npm test` checks that every ocean label sits over open
 
 ```js
 BELTS.per = [[-90, -38, "forestC"], [-38, -8, "desert"], ...]   // south to north, no gaps
+ARID_OVERRIDES.dev = [{ plate:"EUR", name:"...", source:"Old Red Sandstone ...", pts:[...] }]
+                                                                  // arid whatever the belt; `source` names the evidence
 { plate:"SAM", biome:"forestT", pts:[[-78,2],[-70,8], ...] }      // LANDCOVER, today only
 { plate:"AFR", name:"Nile", pts:[[33,0.5],[31.5,6], ...] }        // RIVERS and LAKES, today only
 { plate:"SIB", name:"Urals", from:"per", pts:[...] }              // RANGES; optional to:"jur"
@@ -224,7 +228,8 @@ camera moves are instant, and the location pulse is a static ring.
   composites: no single cliff shows every layer.
 - Ice sheets are drawn as simple circles.
 - Terrain is schematic. Past climates are drawn as belts of latitude, which ignores
-  rain shadows, monsoons and the distance from the sea. Ancient rivers are not drawn,
+  rain shadows, monsoons and the distance from the sea. `ARID_OVERRIDES` corrects the
+  belts in a few regions where the rock record is clear, and only there. Ancient rivers are not drawn,
   because their courses are mostly unknown. Shallow seas are rough outlines of the
   best-known ones, and many others are left out.
 - The coastlines are simple polygons, and zooming in shows it.

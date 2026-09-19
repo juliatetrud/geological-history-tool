@@ -363,6 +363,12 @@ function buildTerrain(){
     belts.map(b => b[2]).filter((b, i, all) => all.indexOf(b) === i)
       .sort((a, b) => Object.keys(BIOMES).indexOf(a) - Object.keys(BIOMES).indexOf(b))
       .forEach(b => note(BIOMES[b].colour, BIOMES[b].name));
+    /* regions the rocks show were arid, whatever belt they sat in */
+    for (const o of (ARID_OVERRIDES[p.id] || [])){
+      terrainNodes.push({ node: el("path", { fill:BIOMES.aridRock.colour, "fill-opacity":".94" }, gTerrain),
+                          plate: o.plate, ring: densify(o.pts, true) });
+      note(BIOMES.aridRock.colour, BIOMES.aridRock.name);
+    }
   } else {
     note(BIOMES.open.colour, BIOMES.open.name);
     for (const c of LANDCOVER){
