@@ -1,6 +1,8 @@
 /* ===================== the timeline =====================
    plates: [ centre longitude, centre latitude, spin (clockwise, degrees) ]
-   Sites are pinned to a plate at modern lon/lat and travel with it.        */
+   Sites are pinned to a plate at modern lon/lat and travel with it.
+   strata: one sentence on the rock typically laid down in that period,
+   shown in the facts list as "Rock record".                                */
 
 const PERIODS = [
 {
@@ -18,6 +20,7 @@ const PERIODS = [
     ["Sea level","Very high; continental interiors flooded"],
     ["Land plants","None"]
   ],
+  strata:"Beach sandstone, then shale, then limestone, stacked as seas advanced across bare continents; the Tapeats, Bright Angel and Muav at the bottom of the Grand Canyon are the standard example.",
     plates:{ NAM:[27.9,-2,34.2], EUR:[66.3,-54.7,19.9], SIB:[-50.7,14,68], CHI:[576.7,-10,75.1],
            IND:[187.9,-40.8,-28.4], AFR:[240.2,-77.7,58.7], SAM:[-81.5,-46.9,86.4],
            AUS:[187.2,-13.2,-89.6], ANT:[-140.7,-32.7,41.1], MAD:[189.1,-52.1,20.2] },
@@ -75,6 +78,7 @@ const PERIODS = [
     ["Ice","A continental ice sheet across northwest Gondwana"],
     ["Land plants","Millimetre-scale, liverwort-like, in wet ground only"]
   ],
+  strata:"Shelly limestone across the flooded tropics, as around Cincinnati and the Baltic coast of Estonia, and glacial tillite across North Africa at the end of the period.",
     plates:{ NAM:[-71.5,-8.1,-11.9], EUR:[-14.9,-48.4,11.9], SIB:[-78.8,16,72],
            CHI:[512.4,-13.6,28], IND:[206.5,-31,32], AFR:[232.8,-71.1,122.3],
            SAM:[-72.4,-47.9,125.7], AUS:[206.7,-3.4,-67.6], ANT:[-124.4,-25.2,99.7],
@@ -126,6 +130,7 @@ const PERIODS = [
     ["Mountains rising","The Caledonides, along the closing Iapetus suture"],
     ["Tallest plant","A few centimetres"]
   ],
+  strata:"Reef limestone and dolomite in the tropics: Wenlock Edge in England, the island of Gotland in Sweden, and the cap rock of Niagara Falls.",
     plates:{ NAM:[-38.9,-13,-18.8], EUR:[10.4,-34.4,28.4], SIB:[-63.9,22,62], CHI:[358.8,-16,38],
            IND:[199.7,-37.7,0.7], AFR:[237.3,-76.9,95], SAM:[-71.5,-48.9,108.4],
            AUS:[200.2,-10.1,-73.3], ANT:[-129.3,-31.1,77.4], MAD:[200,-49.1,72.7] },
@@ -169,6 +174,7 @@ const PERIODS = [
     ["New that period","Wood, roots, seeds, soil and forests"],
     ["Atmosphere","Carbon dioxide falling steeply as forests spread"]
   ],
+  strata:"Red desert sandstone across Laurussia, seen as the Old Red Sandstone of Britain and Norway and the Catskill Delta of New York, with reef limestone offshore.",
     plates:{ NAM:[6.2,1,33.2], EUR:[41.8,-16.3,-9], SIB:[62.8,28,40], CHI:[225.3,-14,34],
            IND:[185.6,-47,-28.6], AFR:[116.2,-88.7,9], SAM:[-61.7,-57.1,53],
            AUS:[192.7,-20,-92.2], ANT:[-136.6,-44.5,3.3], MAD:[180.9,-58.1,-20] },
@@ -219,6 +225,7 @@ const PERIODS = [
     ["Oxygen","Around 30 percent, the highest in Earth's history"],
     ["Largest insect","Meganeura, a dragonfly relative with a 70 cm wingspan"]
   ],
+  strata:"Coal cyclothems across the equatorial belt, from Pennsylvania through Britain to the Donets Basin, resting on shallow-sea limestone such as the Redwall of the Grand Canyon; glacial tillite in the south.",
     plates:{ NAM:[-10.7,14.4,8], EUR:[29.1,9.1,-16.3], SIB:[128.2,34.3,35.1], CHI:[240,0.4,8],
            IND:[52.4,-64.7,28.3], AFR:[2.4,-34.4,17.5], SAM:[-38.6,-31.9,2.5],
            AUS:[121.6,-65.6,-83.3], ANT:[-30,-78.2,-24], MAD:[34.1,-57.4,1.2] },
@@ -276,6 +283,7 @@ const PERIODS = [
     ["Climate","A supercontinental monsoon with a vast dead-dry interior"],
     ["Ending","The largest mass extinction known, 252 million years ago"]
   ],
+  strata:"Red dune sandstone and thick salt across Pangaea's interior, including the Coconino of Arizona, the Rotliegend of Germany and the Zechstein salt under the North Sea, with Glossopteris coal in the south.",
     plates:{ NAM:[-23.1,19.3,0], EUR:[19,26.1,-13.8], SIB:[18.5,66.2,7.5], CHI:[283.7,2,39],
            IND:[48.1,-49.5,32.1], AFR:[3.3,-24.9,5.6], SAM:[-35,-32.2,-18.6],
            AUS:[93.5,-56.2,-85.3], ANT:[13.8,-70.4,-42.1], MAD:[34.5,-43.1,-7.6] },
@@ -333,6 +341,7 @@ const PERIODS = [
     ["First appearing","Dinosaurs, mammals, pterosaurs, turtles, crocodile ancestors"],
     ["Ending","Extinction at 201 Ma as Pangaea's rifts erupt"]
   ],
+  strata:"More red beds: river, lake and salt-flat deposits such as the Moenkopi and Chinle of Arizona, the Buntsandstein of Germany and the Mercia Mudstone of England.",
     plates:{ NAM:[-31.5,24,-27.7], EUR:[8,28.1,19.9], SIB:[45.2,59.1,29.8], CHI:[205,12,24],
            IND:[48.6,-50.2,34.9], AFR:[4.1,-24.9,8], SAM:[-34.2,-31.6,-15.2],
            AUS:[94.7,-57.1,-80.5], ANT:[12.5,-70.5,-35.8], MAD:[35,-43.6,-3.4] },
@@ -390,6 +399,7 @@ const PERIODS = [
     ["Laurasia","North America, Europe, Asia"],
     ["Gondwana","South America, Africa, India, Australia, Antarctica"]
   ],
+  strata:"Marine clay and limestone over flooded Europe, seen in the Blue Lias and Portland stone of Dorset, and dune sandstone followed by river mud in the American west, the Navajo and the Morrison.",
     plates:{ NAM:[-31.6,41.5,-15.6], EUR:[7.2,32.6,-35], SIB:[-26.8,67.5,-7.8], CHI:[103,20,18],
            IND:[50.2,-46.1,49.2], AFR:[10.2,-19,14.2], SAM:[-26.1,-26.8,-10.7],
            AUS:[91.9,-57.1,-62.5], ANT:[16.2,-64.8,-18.1], MAD:[38.5,-38.7,10.8] },
@@ -447,6 +457,7 @@ const PERIODS = [
     ["Sea level","Up to 250 m above today's"],
     ["Ending","Asteroid impact at Chicxulub, 66 million years ago"]
   ],
+  strata:"Chalk over drowned continents, at Dover, at Étretat and in the Niobrara of Kansas, with dark marine shale such as the Mancos along the interior seaway.",
     plates:{ NAM:[-76.8,53.1,1.8], EUR:[22.1,47.2,-4.5], SIB:[91,62.7,-4.7],
            CHI:[111.5,30.4,11.6], IND:[47.5,-34.4,73.8], AFR:[10,-23.1,12.3],
            SAM:[-38.5,-28.3,-31.4], AUS:[96.1,-51.9,-44.7], ANT:[28.4,-67.6,5.3],
@@ -505,6 +516,7 @@ const PERIODS = [
     ["Climate","Warmest sustained interval since the dinosaurs"],
     ["Collision","India meets Asia; the Himalaya begins"]
   ],
+  strata:"Marine clay and sand around the North Sea, such as the London Clay, and lake beds in the American west: the Green River shales and the pink Claron limestone of Bryce Canyon.",
     plates:{ NAM:[-91.1,47.8,-1.9], EUR:[20.5,51,-3.2], SIB:[96.8,64.4,-1], CHI:[109,26,3.5],
            IND:[71,5.9,-29.1], AFR:[13,-4.2,-8.6], SAM:[-47,-26,6.6], AUS:[121,-48,-7.9],
            ANT:[0.9,-83,0.4], MAD:[41,-28,0] },
@@ -562,6 +574,7 @@ const PERIODS = [
     ["Ice on land","About 10 percent of the land surface"],
     ["Still moving","Atlantic widening; Himalaya and Alps rising"]
   ],
+  strata:"Glacial till, river gravel, peat and windblown loess on land, and fine ooze on the deep sea floor; most of it is loose sediment that has not yet hardened into rock.",
     plates:{ NAM:[-95,50,0], EUR:[15,52,0], SIB:[105,65,0], CHI:[108,28,0], IND:[79,20,0],
            AFR:[18,2,0], SAM:[-60,-20,0], AUS:[134,-25,0], ANT:[0,-83,0], MAD:[47,-19,0] },
   ice:[{ plate:"ANT", lon:0, lat:-90, r:22 }],

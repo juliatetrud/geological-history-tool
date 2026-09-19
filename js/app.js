@@ -219,7 +219,7 @@ function renderPeriod(){
     '<p class="kicker">' + esc(p.span) + '</p>' +
     '<h2 class="p-head">' + esc(p.headline) + '</h2>' +
     p.body.map(b => '<p class="p-body">' + esc(b) + '</p>').join("") +
-    '<ul class="facts">' + p.facts.map(f =>
+    '<ul class="facts">' + p.facts.concat([["Rock record", p.strata]]).map(f =>
       '<li><span class="k">' + esc(f[0]) + '</span><span class="v">' + esc(f[1]) + '</span></li>'
     ).join("") + '</ul>' +
     '<p class="sites-title">Places on this globe — click a marker or a name</p>' +
