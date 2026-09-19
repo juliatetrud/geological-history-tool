@@ -2,7 +2,7 @@
   "name": "geological-history-tool",
   "version": "1.0.0",
   "private": true,
-  "description": "Deep Time Globe: an interactive globe of continental drift from the Cambrian to today. The site itself has no build step and no runtime dependencies; jsdom is used only by the smoke test.",
+  "description": "GeoGlobe: an interactive globe of continental drift from the Cambrian to today. The site itself has no build step and no runtime dependencies; jsdom is used only by the smoke test.",
   "license": "(MIT AND CC-BY-4.0)",
   "scripts": {
     "test": "node test/smoke.js"

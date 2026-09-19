@@ -342,6 +342,7 @@ function buildTerrain(){
              : belts ? BIOMES[belts.find(b => b[0] < 0 && b[1] > 0)[2]].colour : BIOMES.open.colour;
   for (const id of PLATE_IDS) for (const node of landPaths[id]) node.setAttribute("fill", base);
   terrainKey.hidden = !showTerrain;
+  terrainKey.parentNode.hidden = !showTerrain;
   if (!showTerrain) return;
   const seen = {};
   const note = (colour, name, kind) => { if (!seen[name]){ seen[name] = 1; key.push([colour, name, kind || "fill"]); } };
@@ -1038,7 +1039,7 @@ revealSeg();
 /* ===================== controls ===================== */
 const playBtn = document.getElementById("playBtn"), playLabel = document.getElementById("playLabel");
 function stopPlay(){
-  playing = false; clearInterval(playTimer); playLabel.textContent = "Play";
+  playing = false; clearInterval(playTimer); playLabel.textContent = "Play through time";
   playBtn.setAttribute("aria-label", "Play through time");
 }
 playBtn.addEventListener("click", () => {

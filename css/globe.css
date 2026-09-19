@@ -83,9 +83,9 @@ body::before{
 
 .globe-cell{position:relative; min-width:0;}
 /* two-column layout: keep the globe beside long panels, sized to fit the window */
-@media (min-width:901px) and (min-height:560px){
+@media (min-width:901px) and (min-height:700px){
   .globe-cell{position:sticky; top:14px;}
-  #globe{max-height:calc(100vh - 172px);}
+  #globe{max-height:max(380px, calc(100vh - 312px));}
 }
 .globe-frame{
   position:relative;
@@ -123,9 +123,20 @@ body::before{
 }
 .globe-hint.hide{opacity:0;}
 
-.views{
-  display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;
+/* ---------- controls under the globe ---------- */
+.controls{
+  margin-top:10px; border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--shelf);
 }
+.ctl{
+  display:grid; grid-template-columns:92px minmax(0,1fr); gap:10px; align-items:center;
+  padding:8px 12px; border-top:1px solid var(--line-soft);
+}
+.ctl:first-child{border-top:0;}
+.ctl[hidden]{display:none;}
+.ctl-l{font-size:12px; color:var(--text-faint);}
+.ctl-c{display:flex; gap:6px; flex-wrap:wrap;}
+@media (max-width:420px){ .ctl{grid-template-columns:1fr; gap:6px;} }
 .chip{
   font:inherit; font-size:12.5px; color:var(--text-dim);
   background:var(--shelf); border:1px solid var(--line);
@@ -142,7 +153,6 @@ body::before{
   display:inline-block; width:7px; height:7px; border-radius:50%;
   margin-right:6px; transform:translateY(-1px); background:currentColor;
 }
-.views .togs{display:flex; gap:6px; margin-left:auto;}
 
 /* ---------- reading panel ---------- */
 .panel{
@@ -236,10 +246,10 @@ body::before{
 .globe-main{flex:1 1 auto; min-width:0;}
 .ribbon-wrap{flex:0 0 116px; display:flex; flex-direction:column; gap:8px; min-width:0;}
 .play{
-  font:inherit; font-size:13px; color:var(--text); cursor:pointer;
+  font:inherit; font-size:13.5px; color:var(--text); cursor:pointer; width:100%;
   background:var(--shelf-2); border:1px solid var(--line);
-  border-radius:var(--radius); padding:6px 13px 6px 11px;
-  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  border-radius:var(--radius); padding:9px 13px; margin-top:10px;
+  display:flex; align-items:center; justify-content:center; gap:9px;
 }
 .play:hover{border-color:#3B4E5D;}
 .play:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
@@ -322,11 +332,10 @@ footer.foot{
 .zoom .chip:disabled{opacity:.4; cursor:default;}
 .zoom #zoomReset{font-size:11.5px; padding:5px 8px;}
 .terrain-key{
-  margin:9px 0 0; padding:0; list-style:none;
+  margin:0; padding:2px 0; list-style:none;
   font-size:11.5px; line-height:1.25; color:var(--text-dim);
-  display:flex; flex-wrap:wrap; gap:4px 14px;
+  display:flex; flex-wrap:wrap; gap:5px 14px;
 }
-.terrain-key[hidden]{display:none;}
 .terrain-key li{display:flex; align-items:center; gap:6px;}
 .terrain-key i{flex:0 0 auto; width:11px; height:11px; border-radius:2px; background:var(--c);}
 .terrain-key i.line{height:2px; border-radius:1px;}
@@ -345,8 +354,6 @@ footer.foot{
 .glabel.mark text{fill:#F4F7F9;}
 .glabel.mark path, .glabel.mark circle{paint-order:stroke;}
 
-/* ---------- mode chips ---------- */
-.views .rule{width:1px; align-self:stretch; background:var(--line); margin:0 3px;}
 
 /* ---------- comparisons ---------- */
 .grp-title{
@@ -429,7 +436,6 @@ svg.column{display:block; font-family:var(--ui);}
   border:1px solid var(--text-faint); border-right:0;
 }
 
-@media (max-width:560px){ .views .rule{display:none;} }
 @media (max-width:420px){
   .wrap{padding:16px 14px 0;}
   .panel-scroll{padding:16px 16px 20px;}

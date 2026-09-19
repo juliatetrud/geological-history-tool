@@ -1,4 +1,4 @@
-# Deep Time Globe
+# GeoGlobe
 
 An interactive globe of the last half billion years. Drag it, step through eleven
 geological periods from the Cambrian to today, and watch the continents travel.
