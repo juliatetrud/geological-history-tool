@@ -269,6 +269,9 @@ number links to its entry on `sources.html`. To cite something new, append an en
 the item. `npm test` fails if an item cites a number that does not exist, and
 `npm run links` checks that every link still resolves.
 
+[CORRECTIONS.md](CORRECTIONS.md) records every claim that was changed or removed during the
+sourcing pass, and what is still unsettled.
+
 The sourcing rules are: peer-reviewed papers and monographs first; then geological surveys,
 museums, park services and universities; science press for framing only and never as the
 sole source for a number. No encyclopaedias, blogs, content farms or dealers. A claim that
