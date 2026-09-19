@@ -1880,7 +1880,15 @@ const SOURCES = [
   { n:463, group:"periods", authors:"Kansas Geological Survey", year:null,
     title:"Chalk",
     container:"GeoKansas, University of Kansas",
-    url:"https://geokansas.ku.edu/chalk", accessed:"2026-09-19" }
+    url:"https://geokansas.ku.edu/chalk", accessed:"2026-09-19" },
+  { n:464, group:"terrain", authors:"Massa, G.; Musumeci, G.; Mazzarini, F.; Pieruccioni, D.", year:2016,
+    title:"Coexistence of contractional and extensional tectonics during the northern Apennines orogeny: the late Miocene out-of-sequence thrust in the Elba Island nappe stack",
+    container:"Geological Journal 52: 353-368",
+    url:"https://doi.org/10.1002/gj.2761", accessed:"2026-09-19" },
+  { n:465, group:"terrain", authors:"Rauch, M.", year:2013,
+    title:"The Oligocene-Miocene tectonic evolution of the northern Outer Carpathian fold-and-thrust belt",
+    container:"Geological Magazine 150: 1082-1099",
+    url:"https://doi.org/10.1017/s0016756813000320", accessed:"2026-09-19" }
 ];
 
 /* PhyloPic silhouettes used in the Animals panel, one line per image.

@@ -89,9 +89,6 @@ const ARID_OVERRIDES = {
       pts:[[-7,50],[0,49],[8,48],[15,49.5],[16,54],[8,56],[0,58],[-6,58],[-8,54]] }
   ],
   tri: [
-    { plate:"NAM", name:"Pangaean interior, American southwest",
-      source:"Moenkopi red beds and the Wingate dune sandstone",
-      pts:[[-118,42],[-104,42],[-100,34],[-104,29],[-112,30],[-117,34]] },
     { plate:"EUR", name:"Pangaean interior, Britain and Germany",
       source:"Sherwood Sandstone, Buntsandstein and the salt of the Mercia Mudstone",
       pts:[[-7,50],[0,49],[8,48],[15,49.5],[16,54],[8,56],[0,58],[-6,58],[-8,54]] }
@@ -208,8 +205,8 @@ const RANGES = [
   { plate:"CHI", name:"Tian Shan",           from:"pgn", pts:[[78,41.5],[82,42],[88,43]] },
   { plate:"EUR", name:"Alps",                from:"pgn", pts:[[6,44.5],[8,46],[11,47],[14.5,47.2]] },
   { plate:"EUR", name:"Pyrenees",            from:"pgn", pts:[[-1.8,43],[0.5,42.7],[3,42.5]] },
-  { plate:"EUR", name:"Carpathians",         from:"pgn", pts:[[18,49],[22,48.5],[25.5,47],[25,45.5],[22.5,45]] },
-  { plate:"EUR", name:"Apennines",           from:"pgn", pts:[[9,44.3],[12,43],[14,41.5],[16,40]] },
+  { plate:"EUR", name:"Carpathians",         from:"now", pts:[[18,49],[22,48.5],[25.5,47],[25,45.5],[22.5,45]] },
+  { plate:"EUR", name:"Apennines",           from:"now", pts:[[9,44.3],[12,43],[14,41.5],[16,40]] },
   { plate:"EUR", name:"Caucasus",            from:"pgn", pts:[[38,44],[42,43],[46,41.5]] },
   { plate:"AFR", name:"Atlas",               from:"pgn", pts:[[-9,30.5],[-5,32],[0,34],[6,35.5],[10,36]] },
   { plate:"NAM", name:"Alaska Range",        from:"now", pts:[[-155,61.5],[-150,63],[-144,62.5]] },

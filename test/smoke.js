@@ -293,6 +293,12 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(dangling.length === 0, cited.length + " citations in the data all point at a listed source" +
      (dangling.length ? ": missing " + dangling.slice(0, 5).map(d => d.join(" -> ")).join("; ") : ""));
   ok(doc.querySelector('.masthead a[href="sources.html"]') !== null, "the masthead links to the sources page");
+  ok(doc.querySelector('.about a[href="sources.html#g-method"]') !== null &&
+     doc.querySelector('.about a[href="sources.html#g-terrain"]') !== null,
+     "the About dialog cites the method and terrain sections");
+  for (const g of ["method", "terrain"])
+    ok(run("SOURCES.filter(s => s.group === " + JSON.stringify(g) + ").length") > 5,
+       "the " + g + " section has " + run("SOURCES.filter(s => s.group === " + JSON.stringify(g) + ").length") + " sources");
   const page = new JSDOM(fs.readFileSync(path.join(root, "sources.html"), "utf8"), { runScripts:"outside-only", url:"file://" + root + "/sources.html" });
   const pctx = page.getInternalVMContext();
   for (const src of [...page.window.document.querySelectorAll("script[src]")].map(x => x.getAttribute("src")))
