@@ -71,8 +71,11 @@ css/globe.css       all styles
 js/geometry.js      spherical maths, plate outlines (PLATES), icon drawings (ICONS)
 js/data.js          PERIODS, COMPARISONS, COLUMNS, LANDMARKS, PERIOD_LABELS: all content
 js/terrain.js       BIOMES, BELTS, LANDCOVER, RIVERS, LAKES, RANGES, SEAS: what colours the land
+js/sources.js       SOURCES: every reference, numbered; SILHOUETTES: image credits
 js/app.js           runtime: drawing, camera, panel modes, controls
+sources.html        the numbered reference list (rendered by js/sources-page.js)
 test/smoke.js       jsdom smoke test
+test/links.js       checks that every source link resolves (npm run links; needs the network)
 .github/workflows/pages.yml   test, then deploy the repo root to GitHub Pages
 ```
 
@@ -208,6 +211,20 @@ Layers run **bottom to top**.
 
 Thickness is drawn at 0.3 pixels per metre. Thin layers are held to a height that fits
 their label, and anything over 500 m is cut short and marked with a zigzag.
+
+## Sources
+
+Every site, animal, comparison, rock layer and period carries `sources:[12, 34]`, a list of
+entry numbers from `js/sources.js`. The panel shows them as a "Sources" line, and each
+number links to its entry on `sources.html`. To cite something new, append an entry to
+`SOURCES` with the next unused number (numbers are never reused), then add that number to
+the item. `npm test` fails if an item cites a number that does not exist, and
+`npm run links` checks that every link still resolves.
+
+The sourcing rules are: peer-reviewed papers and monographs first; then geological surveys,
+museums, park services and universities; science press for framing only and never as the
+sole source for a number. No encyclopaedias, blogs, content farms or dealers. A claim that
+cannot be traced to the first two kinds of source is removed.
 
 ## Accessibility
 

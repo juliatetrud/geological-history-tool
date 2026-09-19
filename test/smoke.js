@@ -42,7 +42,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 
 (async function(){
   console.log("page" + (reducedMotion ? " (prefers-reduced-motion)" : ""));
-  ok(srcs.join() === "js/geometry.js,js/data.js,js/terrain.js,js/app.js", "scripts load in order: " + srcs.join(", "));
+  ok(srcs.join() === "js/geometry.js,js/data.js,js/terrain.js,js/sources.js,js/app.js", "scripts load in order: " + srcs.join(", "));
   ok(doc.querySelector('link[href="css/globe.css"]') !== null, "stylesheet is linked");
   ok(!/type=["']module["']/.test(html), "no ES modules, so the page runs from file://");
   for (const src of srcs) run(fs.readFileSync(path.join(root, src), "utf8"));
@@ -248,6 +248,36 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(run("mode") === "layers" && /Devonian/.test(panel.querySelector(".back").textContent), "timeline click keeps the column and updates the back link");
   click(panel.querySelector(".back"));
   ok(run("mode") === "period" && /Forests appear/.test(panel.textContent), "back returns to the Devonian overview");
+
+  console.log("sources");
+  const nums = run("SOURCES.map(s => s.n)");
+  ok(nums.length > 0 && new Set(nums).size === nums.length, nums.length + " sources, each with its own number");
+  ok(run(`SOURCES.every(s => SOURCE_GROUPS.some(g => g.id === s.group) && s.authors && s.title && s.container &&
+          /^https:\\/\\//.test(s.url) && /^\\d{4}-\\d{2}-\\d{2}$/.test(s.accessed) && (s.year === null || s.year > 1700))`),
+     "every source has a group, authors, title, container, https link and access date");
+  ok(!run("SOURCES.some(s => /wikipedia\\.org|britannica\\.com/i.test(s.url))"), "no encyclopaedia is cited");
+  const cited = run(`(function(){
+    const out = [];
+    const take = (where, list) => (list || []).forEach(n => out.push([where, n]));
+    PERIODS.forEach(p => { take("period " + p.id, p.sources); p.sites.forEach(s => take("site " + s.title, s.sources)); });
+    COMPARISONS.forEach(c => take("comparison " + c.id, c.sources));
+    COLUMNS.forEach(c => c.layers.forEach(L => take("layer " + L.name, L.sources)));
+    if (typeof ANIMALS !== "undefined") Object.keys(ANIMALS).forEach(k => ANIMALS[k].forEach(a => take("animal " + a.genus, a.sources)));
+    return out;
+  })()`);
+  const dangling = cited.filter(c => !nums.includes(c[1]));
+  ok(dangling.length === 0, cited.length + " citations in the data all point at a listed source" +
+     (dangling.length ? ": missing " + dangling.slice(0, 5).map(d => d.join(" -> ")).join("; ") : ""));
+  ok(doc.querySelector('.masthead a[href="sources.html"]') !== null, "the masthead links to the sources page");
+  const page = new JSDOM(fs.readFileSync(path.join(root, "sources.html"), "utf8"), { runScripts:"outside-only", url:"file://" + root + "/sources.html" });
+  const pctx = page.getInternalVMContext();
+  for (const src of [...page.window.document.querySelectorAll("script[src]")].map(x => x.getAttribute("src")))
+    new vm.Script(fs.readFileSync(path.join(root, src), "utf8")).runInContext(pctx);
+  const pdoc = page.window.document;
+  ok(pdoc.querySelectorAll(".src-list li").length === nums.length && nums.every(n => pdoc.getElementById("s" + n)),
+     "sources.html lists every source with a numbered anchor");
+  ok([...pdoc.querySelectorAll(".src-list li a")].every(a => /^https:/.test(a.getAttribute("href"))), "every entry's title is a link");
+  page.window.close();
 
   console.log("\n" + (checks - failures) + " of " + checks + " checks passed");
   win.close();

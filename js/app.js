@@ -246,6 +246,16 @@ function frame(now){
 const panel = document.getElementById("panel");
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
 
+/* "Sources: 12, 34", each number linking to its entry on sources.html */
+function sourcesLine(list){
+  if (!list || !list.length) return "";
+  return '<p class="src">Sources: ' + list.map(n => {
+    const s = sourceByNumber(n);
+    return '<a href="sources.html#s' + n + '"' + (s ? ' title="' + esc(sourceCitation(s)).replace(/"/g, "&quot;") + '"' : '') +
+           '>' + n + '</a>';
+  }).join(", ") + '</p>';
+}
+
 function renderPeriod(){
   const p = PERIODS[idx];
   selected = null;
@@ -264,7 +274,7 @@ function renderPeriod(){
       '<span class="pin" style="background:' + CAT_COLOUR[s.cat] + '"></span>' +
       '<span><span class="st">' + esc(s.title) + '</span><br>' +
       '<span class="sd">' + esc(s.sub) + '</span></span></button></li>'
-    ).join("") + '</ul></div>';
+    ).join("") + '</ul>' + sourcesLine(p.sources) + '</div>';
   panel.querySelectorAll(".site-btn").forEach(b =>
     b.addEventListener("click", () => selectSite(+b.dataset.n)));
   panel.scrollTop = 0;
@@ -287,7 +297,7 @@ function renderSite(n){
     '<div class="tn"><h4>Today</h4>' +
       '<div class="scene">' + iconSVG(s.now.icon, "#8FA3B0") + '</div>' +
       '<p class="where">' + esc(s.now.where) + '</p><p>' + esc(s.now.text) + '</p></div>' +
-    '</div></div>';
+    '</div>' + sourcesLine(s.sources) + '</div>';
   panel.querySelector(".back").addEventListener("click", renderPeriod);
   panel.scrollTop = 0;
 }
@@ -716,7 +726,8 @@ function renderCompare(){
             (steps.length > 1 ? '<span class="pw"> · ' + esc(PERIODS[periodIndex(pl.period || c.period)].name) + '</span>' : '') +
             '</button></li>').join("") + '</ul>' +
           '<div class="cmp-act"><button class="chip go">Show on globe</button>' +
-          '<span class="cmp-when">Shown in ' + esc(when).replace(/^today/, "the present") + '</span></div></li>';
+          '<span class="cmp-when">Shown in ' + esc(when).replace(/^today/, "the present") + '</span></div>' +
+          sourcesLine(c.sources) + '</li>';
       }).join("") + '</ul>'
     ).join("") + '</div>';
   panel.querySelector(".back").addEventListener("click", renderPeriod);
@@ -947,7 +958,7 @@ function renderLayerCard(){
     '<p class="lc-thick">' + esc(L.gap ? L.note : L.thick) + '</p>' +
     '<div class="cmp-act"><button class="chip go">Show on globe</button><span class="cmp-when">' +
     (p ? "Globe set to " + esc(periodPhrase(p)) : "Outside this timeline; the globe stays where it is") +
-    '</span></div>';
+    '</span></div>' + sourcesLine(L.sources);
   card.querySelector(".go").addEventListener("click", () => { selectLayer(activeLayer); scrollToGlobe(); });
 }
 function selectLayer(i){

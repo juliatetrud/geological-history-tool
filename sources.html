@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sources · GeoGlobe</title>
+<meta name="description" content="Every source cited by GeoGlobe, numbered and grouped by section.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/globe.css">
+</head>
+<body class="sources-page">
+<div class="wrap">
+
+  <header class="masthead">
+    <h1 class="mark"><a href="index.html">Geo<em>Globe</em></a></h1>
+    <p class="tag">Sources</p>
+    <div class="masthead-actions">
+      <a class="chip" href="index.html">Back to the globe</a>
+    </div>
+  </header>
+
+  <main class="src-main">
+    <p class="p-body">This page lists the <span id="sourceCount"></span> sources behind the globe. Each site, animal,
+    comparison and rock layer in the tool ends with a line of numbers, and each number links to its entry here.</p>
+    <p class="p-body">Peer-reviewed papers and monographs come first. Geological surveys, museums, park services and
+    universities come second. Science press appears only for framing and never as the sole source for a number.
+    Encyclopaedias, blogs and dealers are not cited. A claim that could not be traced to a source of the first two
+    kinds was removed from the tool.</p>
+    <nav class="src-nav" id="sourceNav" aria-label="Sections"></nav>
+    <div id="sourceList"></div>
+    <noscript><p class="p-body">This list is built from <a href="js/sources.js">js/sources.js</a>, which can be read directly.</p></noscript>
+  </main>
+
+  <footer class="foot">
+    Found an error or a better source? Open an issue at
+    <a href="https://github.com/juliatetrud/geological-history-tool/issues">github.com/juliatetrud/geological-history-tool</a>.
+  </footer>
+</div>
+<script src="js/sources.js"></script>
+<script src="js/sources-page.js"></script>
+</body>
+</html>
