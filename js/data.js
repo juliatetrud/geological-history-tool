@@ -875,48 +875,145 @@ const COLUMNS = [
    In a past period each is labelled with what that ground is now ("now the
    Appalachian Mts."); today it carries its plain name. `name` is written so
    that it reads after the word "now". Order is priority: when labels would
-   overlap, earlier entries win, and the first ten are always placed first.
-     kind: mountain | forest | desert | ice | region
+   overlap, earlier entries win, and the first LANDMARK_TOP are always placed first.
+     kind: mountain | forest | desert | ice | region | city
+   When a name will not fit, mountains, forests, deserts and ice keep their icon.
 
    PERIOD_LABELS are the names of the time itself:
      lands  - what a continent was called then, pinned to a plate
      oceans - fixed at [lon, lat] for that period; the smoke test checks
               that each one sits over open water                            */
 
+const LANDMARK_TOP = 11;
 const LANDMARKS = [
-  { plate:"NAM", lon:-80,   lat:37.5, kind:"mountain", name:"the Appalachian Mts." },
+  /* placed first (LANDMARK_TOP of them) */
+  /* New York goes first: placed second, its point would sit under the Appalachians' name */
+  { plate:"NAM", lon:-74,   lat:40.7, kind:"city",     name:"New York" },
+  { plate:"NAM", lon:-82.5, lat:35.8, kind:"mountain", name:"the Appalachian Mts." },
   { plate:"SAM", lon:-62,   lat:-5,   kind:"forest",   name:"the Amazon rainforest" },
   { plate:"IND", lon:84,    lat:28,   kind:"mountain", name:"the Himalaya" },
   { plate:"AFR", lon:21,    lat:0,    kind:"forest",   name:"the Congo rainforest" },
-  { plate:"AFR", lon:10,    lat:23,   kind:"desert",   name:"the Sahara" },
-  { plate:"SAM", lon:-69,   lat:-19,  kind:"mountain", name:"the Andes" },
-  { plate:"NAM", lon:-112,  lat:46,   kind:"mountain", name:"the Rocky Mts." },
+  { plate:"AFR", lon:12,    lat:22,   kind:"desert",   name:"the Sahara" },
+  { plate:"SAM", lon:-69,   lat:-17,  kind:"mountain", name:"the Andes" },
+  { plate:"NAM", lon:-106,  lat:39.5, kind:"mountain", name:"the Rocky Mts." },
   { plate:"SIB", lon:100,   lat:62,   kind:"forest",   name:"the Siberian taiga" },
   { plate:"EUR", lon:10,    lat:46.5, kind:"mountain", name:"the Alps" },
   { plate:"ANT", lon:165,   lat:-82,  kind:"mountain", name:"the Transantarctic Mts." },
-  { plate:"AUS", lon:132,   lat:-25,  kind:"desert",   name:"the Australian outback" },
+
+  /* North America */
+  { plate:"NAM", lon:-112.1,lat:36.1, kind:"region",   name:"the Grand Canyon" },
   { plate:"NAM", lon:-95,   lat:56,   kind:"forest",   name:"the Canadian boreal forest" },
-  { plate:"EUR", lon:-4.5,  lat:57,   kind:"mountain", name:"the Scottish Highlands" },
-  { plate:"SIB", lon:59,    lat:58,   kind:"mountain", name:"the Ural Mts." },
-  { plate:"CHI", lon:103,   lat:16,   kind:"forest",   name:"the rainforest of Southeast Asia" },
   { plate:"NAM", lon:-40,   lat:72,   kind:"ice",      name:"the Greenland ice sheet" },
-  { plate:"ANT", lon:90,    lat:-78,  kind:"ice",      name:"the East Antarctic ice sheet" },
-  { plate:"AFR", lon:22,    lat:-24,  kind:"desert",   name:"the Kalahari" },
-  { plate:"AFR", lon:-4,    lat:32,   kind:"mountain", name:"the Atlas Mts." },
-  { plate:"AUS", lon:149,   lat:-30,  kind:"mountain", name:"the Great Dividing Range" },
-  { plate:"IND", lon:75.5,  lat:13,   kind:"forest",   name:"the Western Ghats" },
-  { plate:"NAM", lon:-100,  lat:40,   kind:"region",   name:"the Great Plains" },
-  { plate:"CHI", lon:104,   lat:43,   kind:"desert",   name:"the Gobi" },
-  { plate:"AFR", lon:47,    lat:22,   kind:"desert",   name:"Arabia" },
-  { plate:"SAM", lon:-69,   lat:-45,  kind:"region",   name:"Patagonia" },
-  { plate:"EUR", lon:15,    lat:62,   kind:"region",   name:"Scandinavia" },
-  { plate:"IND", lon:77,    lat:19,   kind:"region",   name:"the Deccan" },
-  { plate:"CHI", lon:89,    lat:33.5, kind:"region",   name:"Tibet" },
+  { plate:"NAM", lon:-100,  lat:41,   kind:"region",   name:"the Great Plains" },
   { plate:"NAM", lon:-85,   lat:45,   kind:"region",   name:"the Great Lakes" },
-  { plate:"EUR", lon:-4,    lat:40,   kind:"region",   name:"Spain" },
-  { plate:"NAM", lon:-81.5, lat:28,   kind:"region",   name:"Florida" },
+  { plate:"NAM", lon:-119,  lat:37.5, kind:"mountain", name:"the Sierra Nevada" },
+  { plate:"NAM", lon:-123.5,lat:47.5, kind:"forest",   name:"the Pacific Northwest rainforest" },
+  { plate:"NAM", lon:-110.5,lat:44.6, kind:"region",   name:"Yellowstone" },
+  { plate:"NAM", lon:-151,  lat:63,   kind:"mountain", name:"the Alaska Range" },
+  { plate:"NAM", lon:-112,  lat:31,   kind:"desert",   name:"the Sonoran Desert" },
+  { plate:"NAM", lon:-90,   lat:29.5, kind:"region",   name:"the Mississippi delta" },
+  { plate:"NAM", lon:-89,   lat:20,   kind:"region",   name:"the Yucatán" },
+  { plate:"NAM", lon:-105,  lat:25,   kind:"mountain", name:"the Sierra Madre" },
+  { plate:"NAM", lon:-99.1, lat:19.4, kind:"city",     name:"Mexico City" },
+  { plate:"NAM", lon:-118.2,lat:34,   kind:"city",     name:"Los Angeles" },
+  { plate:"NAM", lon:-78,   lat:53,   kind:"region",   name:"the Canadian Shield" },
+  { plate:"NAM", lon:-56,   lat:49,   kind:"region",   name:"Newfoundland" },
+  { plate:"NAM", lon:-124,  lat:41,   kind:"forest",   name:"the redwood forests" },
+
+  /* South America */
+  { plate:"SAM", lon:-69.5, lat:-24,  kind:"desert",   name:"the Atacama" },
+  { plate:"SAM", lon:-69,   lat:-45,  kind:"region",   name:"Patagonia" },
+  { plate:"SAM", lon:-44,   lat:-21,  kind:"forest",   name:"Brazil's Atlantic Forest" },
+  { plate:"SAM", lon:-62,   lat:5,    kind:"mountain", name:"the Guiana Highlands" },
+  { plate:"SAM", lon:-57,   lat:-17,  kind:"region",   name:"the Pantanal" },
+  { plate:"SAM", lon:-62,   lat:-35,  kind:"region",   name:"the Pampas" },
+  { plate:"SAM", lon:-72.5, lat:-41,  kind:"forest",   name:"the Valdivian rainforest" },
+  { plate:"SAM", lon:-46.6, lat:-23.5,kind:"city",     name:"São Paulo" },
+  { plate:"SAM", lon:-68,   lat:-54,  kind:"region",   name:"Tierra del Fuego" },
+
+  /* Africa, Arabia and Madagascar */
+  { plate:"AFR", lon:22,    lat:-23,  kind:"desert",   name:"the Kalahari" },
+  { plate:"AFR", lon:-4,    lat:32,   kind:"mountain", name:"the Atlas Mts." },
+  { plate:"AFR", lon:31.2,  lat:30,   kind:"city",     name:"Cairo" },
+  { plate:"AFR", lon:39,    lat:10,   kind:"mountain", name:"the Ethiopian Highlands" },
+  { plate:"AFR", lon:35,    lat:-2.5, kind:"region",   name:"the Serengeti" },
+  { plate:"AFR", lon:47,    lat:22,   kind:"desert",   name:"Arabia" },
+  { plate:"AFR", lon:15,    lat:-24,  kind:"desert",   name:"the Namib" },
+  { plate:"AFR", lon:-7,    lat:6.5,  kind:"forest",   name:"the West African rainforest" },
+  { plate:"AFR", lon:29,    lat:-29.5,kind:"mountain", name:"the Drakensberg" },
+  { plate:"AFR", lon:23,    lat:-32,  kind:"region",   name:"the Karoo" },
+  { plate:"AFR", lon:0,     lat:14.5, kind:"region",   name:"the Sahel" },
+  { plate:"AFR", lon:32,    lat:24,   kind:"region",   name:"the Nile valley" },
+  { plate:"AFR", lon:18.5,  lat:-33.9,kind:"city",     name:"Cape Town" },
+  { plate:"AFR", lon:6.5,   lat:5,    kind:"region",   name:"the Niger delta" },
   { plate:"MAD", lon:47,    lat:-19,  kind:"region",   name:"Madagascar" },
-  { plate:"AUS", lon:145,   lat:-16,  kind:"forest",   name:"the Queensland rainforest" }
+
+  /* Europe */
+  { plate:"EUR", lon:-4.5,  lat:57,   kind:"mountain", name:"the Scottish Highlands" },
+  { plate:"EUR", lon:-0.1,  lat:51.5, kind:"city",     name:"London" },
+  { plate:"EUR", lon:15,    lat:63,   kind:"region",   name:"Scandinavia" },
+  { plate:"EUR", lon:0.5,   lat:42.7, kind:"mountain", name:"the Pyrenees" },
+  { plate:"EUR", lon:2.4,   lat:48.9, kind:"city",     name:"Paris" },
+  { plate:"EUR", lon:24,    lat:47,   kind:"mountain", name:"the Carpathians" },
+  { plate:"EUR", lon:-4,    lat:40,   kind:"region",   name:"Spain" },
+  { plate:"EUR", lon:13,    lat:42.5, kind:"mountain", name:"the Apennines" },
+  { plate:"EUR", lon:45,    lat:60,   kind:"forest",   name:"the Russian taiga" },
+  { plate:"EUR", lon:23.8,  lat:52.7, kind:"forest",   name:"Białowieża Forest" },
+  { plate:"EUR", lon:37.6,  lat:55.7, kind:"city",     name:"Moscow" },
+  { plate:"EUR", lon:7,     lat:61,   kind:"region",   name:"the Norwegian fjords" },
+  { plate:"EUR", lon:8.2,   lat:48.2, kind:"forest",   name:"the Black Forest" },
+  { plate:"EUR", lon:42.5,  lat:43.5, kind:"mountain", name:"the Caucasus" },
+  { plate:"EUR", lon:22,    lat:39.5, kind:"region",   name:"Greece" },
+  { plate:"EUR", lon:-8,    lat:53,   kind:"region",   name:"Ireland" },
+
+  /* Siberia */
+  { plate:"SIB", lon:59,    lat:58,   kind:"mountain", name:"the Ural Mts." },
+  { plate:"SIB", lon:108,   lat:53.5, kind:"region",   name:"Lake Baikal" },
+  { plate:"SIB", lon:160,   lat:56,   kind:"mountain", name:"Kamchatka" },
+  { plate:"SIB", lon:88,    lat:50,   kind:"mountain", name:"the Altai Mts." },
+  { plate:"SIB", lon:110,   lat:72,   kind:"region",   name:"the Siberian tundra" },
+  { plate:"SIB", lon:75,    lat:61,   kind:"region",   name:"the West Siberian Plain" },
+  { plate:"SIB", lon:130,   lat:67,   kind:"mountain", name:"the Verkhoyansk Range" },
+
+  /* China and Southeast Asia */
+  { plate:"CHI", lon:103,   lat:16,   kind:"forest",   name:"the rainforest of Southeast Asia" },
+  { plate:"CHI", lon:89,    lat:33.5, kind:"region",   name:"Tibet" },
+  { plate:"CHI", lon:104,   lat:43,   kind:"desert",   name:"the Gobi" },
+  { plate:"CHI", lon:116.4, lat:39.9, kind:"city",     name:"Beijing" },
+  { plate:"CHI", lon:110.3, lat:25.3, kind:"region",   name:"the Guilin karst" },
+  { plate:"CHI", lon:83,    lat:39,   kind:"desert",   name:"the Taklamakan" },
+  { plate:"CHI", lon:105,   lat:30.5, kind:"region",   name:"the Sichuan Basin" },
+  { plate:"CHI", lon:109,   lat:37,   kind:"region",   name:"the Loess Plateau" },
+  { plate:"CHI", lon:105.8, lat:10.2, kind:"region",   name:"the Mekong delta" },
+  { plate:"CHI", lon:81,    lat:42,   kind:"mountain", name:"the Tian Shan" },
+
+  /* India */
+  { plate:"IND", lon:75.5,  lat:13,   kind:"forest",   name:"the Western Ghats" },
+  { plate:"IND", lon:77,    lat:19,   kind:"region",   name:"the Deccan" },
+  { plate:"IND", lon:77.2,  lat:28.6, kind:"city",     name:"Delhi" },
+  { plate:"IND", lon:71,    lat:27,   kind:"desert",   name:"the Thar Desert" },
+  { plate:"IND", lon:89,    lat:22,   kind:"forest",   name:"the Sundarbans" },
+  { plate:"IND", lon:83,    lat:25.5, kind:"region",   name:"the Ganges plain" },
+
+  /* Australia, with New Zealand and New Guinea riding along */
+  { plate:"AUS", lon:124,   lat:-26,  kind:"desert",   name:"the Australian outback" },
+  { plate:"AUS", lon:149,   lat:-30,  kind:"mountain", name:"the Great Dividing Range" },
+  { plate:"AUS", lon:131,   lat:-25.3,kind:"region",   name:"Uluru" },
+  { plate:"AUS", lon:147,   lat:-18,  kind:"region",   name:"the Great Barrier Reef" },
+  { plate:"AUS", lon:145,   lat:-16,  kind:"forest",   name:"the Queensland rainforest" },
+  { plate:"AUS", lon:151.2, lat:-33.9,kind:"city",     name:"Sydney" },
+  { plate:"AUS", lon:129,   lat:-31,  kind:"desert",   name:"the Nullarbor" },
+  { plate:"AUS", lon:126,   lat:-16.5,kind:"region",   name:"the Kimberley" },
+  { plate:"AUS", lon:146.5, lat:-42,  kind:"forest",   name:"the forests of Tasmania" },
+  { plate:"AUS", lon:142,   lat:-5.5, kind:"forest",   name:"the New Guinea rainforest" },
+  { plate:"AUS", lon:172,   lat:-42.5,kind:"region",   name:"New Zealand" },
+
+  /* Antarctica */
+  { plate:"ANT", lon:90,    lat:-78,  kind:"ice",      name:"the East Antarctic ice sheet" },
+  { plate:"ANT", lon:-62,   lat:-68,  kind:"mountain", name:"the Antarctic Peninsula" },
+  { plate:"ANT", lon:-100,  lat:-79,  kind:"ice",      name:"the West Antarctic ice sheet" },
+  { plate:"ANT", lon:-175,  lat:-81,  kind:"ice",      name:"the Ross Ice Shelf" },
+  { plate:"ANT", lon:167,   lat:-77.5,kind:"mountain", name:"Mount Erebus" }
 ];
 
 const OLD_LANDS = [
@@ -948,10 +1045,10 @@ const PERIOD_LABELS = {
         oceans:[{ at:[-39,-29], text:"Iapetus Ocean" }, { at:[50,40], text:"Panthalassa" }] },
   sil:{ lands:OLD_LANDS,
         oceans:[{ at:[-1,-55], text:"Rheic Ocean" }, { at:[105,40], text:"Panthalassa" }] },
-  dev:{ lands:[{ plate:"NAM", lon:-72, lat:50, text:"Laurussia" }, OLD_LANDS[2], OLD_LANDS[3], OLD_LANDS[4]],
+  dev:{ lands:[{ plate:"NAM", lon:-92, lat:54, text:"Laurussia" }, OLD_LANDS[2], OLD_LANDS[3], OLD_LANDS[4]],
         oceans:[{ at:[-15,-33], text:"Rheic Ocean" }, { at:[99,-28], text:"Paleo-Tethys" },
                 { at:[-90,60], text:"Panthalassa" }] },
-  car:{ lands:[{ plate:"NAM", lon:-72, lat:50, text:"Laurussia" }, OLD_LANDS[2], OLD_LANDS[3], OLD_LANDS[4]],
+  car:{ lands:[{ plate:"NAM", lon:-92, lat:54, text:"Laurussia" }, OLD_LANDS[2], OLD_LANDS[3], OLD_LANDS[4]],
         oceans:[{ at:[72,2], text:"Paleo-Tethys" }, { at:[-110,50], text:"Panthalassa" }] },
   per:{ lands:PANGAEA,
         oceans:[{ at:[66,5], text:"Tethys Ocean" }, { at:[-175,5], text:"Panthalassa" }] },

@@ -301,8 +301,10 @@ const MARK_ICON = {
   forest:  '<circle cy="-1.5" r="3.6" fill="#F4F7F9"/><path d="M0 1v4" stroke="#F4F7F9" stroke-width="1.6"/>',
   desert:  '<path d="M-6 2q3-6 6 0t6 0" fill="none" stroke="#F4F7F9" stroke-width="1.6" stroke-linecap="round"/>',
   ice:     '<path d="M0 -4.5L4 0L0 4.5L-4 0Z" fill="none" stroke="#F4F7F9" stroke-width="1.5"/>',
-  region:  '<circle r="2" fill="#F4F7F9"/>'
+  region:  '<circle r="2" fill="#F4F7F9"/>',
+  city:    '<rect x="-2.6" y="-2.6" width="5.2" height="5.2" fill="none" stroke="#F4F7F9" stroke-width="1.5"/>'
 };
+const ICON_ALONE = { mountain:1, forest:1, desert:1, ice:1 };   // kinds that stay when their name will not fit
 let labelNodes = [], labelScale = 1;
 
 function landmarkText(m){
@@ -318,8 +320,8 @@ function buildLabels(){
     if (icon) g.innerHTML = icon;
     const t = el("text", {}, g);
     t.textContent = kind === "land" ? text.toUpperCase() : text;
-    /* tier: names of the time, then the ten best-known landmarks, then the rest */
-    const tier = kind === "land" ? 0 : kind === "ocean" ? 1 : LANDMARKS.indexOf(where) < 10 ? 2 : 3;
+    /* tier: names of the time, then the best-known landmarks, then the rest */
+    const tier = kind === "land" ? 0 : kind === "ocean" ? 1 : LANDMARKS.indexOf(where) < LANDMARK_TOP ? 2 : 3;
     labelNodes.push({ g, t, kind, where, tier, n:labelNodes.length, chars:text.length, a:0, on:false });
   };
   (set.lands  || []).forEach(l => add("land",  l.text, l));
@@ -333,7 +335,7 @@ function overlaps(b, boxes){
 function drawLabels(poses, appear){
   gLabel.style.display = showLabels ? "" : "none";
   if (!showLabels) return;
-  const boxes = [];
+  const boxes = [], pins = [];          // taken by labels; taken by site markers
   const screen = (where) => {
     let v;
     if (where.at) v = vec(where.at[0], where.at[1]);
@@ -347,7 +349,7 @@ function drawLabels(poses, appear){
   /* markers and highlighted places keep their ground */
   for (const m of markNodes){
     const s = screen(m.site);
-    if (s[2] > 0) boxes.push([s[0] - 11, s[1] - 11, s[0] + 11, s[1] + 11]);
+    if (s[2] > 0) pins.push([s[0] - 9, s[1] - 9, s[0] + 9, s[1] + 9]);
   }
   for (const h of highlights){
     const s = screen(h.place);
@@ -358,24 +360,59 @@ function drawLabels(poses, appear){
   }
   /* within a tier, labels already showing go first, so they do not flicker */
   const order = labelNodes.slice().sort((p, q) => p.tier - q.tier || (q.on - p.on) || p.n - q.n);
+  /* the best-known landmarks reserve their own point, so that a neighbour's
+     name is not laid across it before they have had their turn               */
+  const reserved = [];
+  for (const L of labelNodes){
+    if (L.tier !== 2) continue;
+    const s = screen(L.where);
+    if (s[2] > .32) reserved.push({ L, box:[s[0] - 6, s[1] - 6, s[0] + 6, s[1] + 6] });
+  }
+  let placing = null;
+  const fits = b => !overlaps(b, boxes) && !overlaps(b, pins) &&
+    !overlaps(b, reserved.filter(r => r.L !== placing).map(r => r.box)) &&
+    Math.hypot(Math.max(Math.abs(b[0] - CX), Math.abs(b[2] - CX)),
+               Math.max(Math.abs(b[1] - CY), Math.abs(b[3] - CY))) < R * 1.12;
   for (const L of order){
     const s = screen(L.where), st = LABEL_STYLE[L.kind], size = st.size * labelScale;
     let target = 0;
+    placing = L;
     if (s[2] > .32){
-      const w = L.chars * size * st.wide, h = size * 1.25;
-      const flip = L.kind === "mark" && s[0] + w + 12 > CX + R * .92;
-      const box = L.kind === "mark"
-        ? (flip ? [s[0] - w - 12, s[1] - h/2, s[0] + 8, s[1] + h/2] : [s[0] - 8, s[1] - h/2, s[0] + w + 12, s[1] + h/2])
-        : [s[0] - w/2, s[1] - h/2, s[0] + w/2, s[1] + h/2];
-      if (!overlaps(box, boxes)){
-        boxes.push(box);
-        target = Math.min(1, (s[2] - .32) / .2) * appear;
-        L.g.setAttribute("transform", "translate(" + s[0].toFixed(1) + "," + s[1].toFixed(1) + ")");
-        L.t.setAttribute("font-size", size.toFixed(1));
-        if (L.kind === "mark"){
-          L.t.setAttribute("x", flip ? -10 : 10);
-          L.t.setAttribute("text-anchor", flip ? "end" : "start");
+      const x = s[0], y = s[1], w = L.chars * size * st.wide, h = size * 1.25;
+      const fade = Math.min(1, (s[2] - .32) / .2) * appear;
+      let placed = false;
+      if (L.kind !== "mark"){
+        const box = [x - w/2, y - h/2, x + w/2, y + h/2];
+        if (!overlaps(box, boxes) && !overlaps(box, pins)){ boxes.push(box); placed = true; }
+      } else {
+        /* try the name to the right, left, above and below the icon, starting
+           with wherever it sat last frame. The icon may sit under a site marker
+           (a marker is often the very place), but never under another label.    */
+        const icon = [x - 6, y - 6, x + 6, y + 6];
+        const spots = overlaps(icon, boxes) ? {} : {
+          r:{ box:[x + 10, y - h/2, x + w + 14, y + h/2],           tx:12,  ty:0,            anchor:"start" },
+          l:{ box:[x - w - 14, y - h/2, x - 10, y + h/2],           tx:-12, ty:0,            anchor:"end" },
+          u:{ box:[x - w/2, y - h - 10, x + w/2, y - 10],           tx:0,   ty:-(h/2 + 10),  anchor:"middle" },
+          d:{ box:[x - w/2, y + 10, x + w/2, y + h + 10],           tx:0,   ty:h/2 + 10,     anchor:"middle" }
+        };
+        const tries = (L.spot ? [L.spot] : []).concat(["r", "l", "u", "d"].filter(k => k !== L.spot));
+        L.t.setAttribute("display", "none");
+        for (const k of tries){
+          if (!spots[k] || !fits(spots[k].box)) continue;
+          boxes.push(spots[k].box, icon); L.spot = k; placed = true;
+          L.t.setAttribute("display", "inline");
+          L.t.setAttribute("x", spots[k].tx); L.t.setAttribute("y", spots[k].ty.toFixed(1));
+          L.t.setAttribute("text-anchor", spots[k].anchor);
+          break;
         }
+        if (!placed && ICON_ALONE[L.where.kind]){
+          if (!overlaps(icon, boxes) && !overlaps(icon, pins)){ boxes.push(icon); placed = true; }
+        }
+      }
+      if (placed){
+        target = fade;
+        L.g.setAttribute("transform", "translate(" + x.toFixed(1) + "," + y.toFixed(1) + ")");
+        L.t.setAttribute("font-size", size.toFixed(1));
       }
     }
     L.on = target > 0;

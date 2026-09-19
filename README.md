@@ -17,7 +17,8 @@ and no runtime dependencies beyond two Google Fonts, and runs from a folder on d
   Gondwana, Pangaea), italics name the oceans of the time (Iapetus, Tethys, Panthalassa),
   and small labels mark modern landmarks on the ground they now occupy: in the Permian,
   "now the Appalachian Mts." sits beside "now the Atlas Mts." in the middle of Pangaea.
-  Labels that would collide are dropped, and a toggle turns them all off.
+  A name is tried on each side of its point; if none is free, the icon stays without it.
+  A toggle turns all labels off.
 - **The timeline** runs down the left of the globe, youngest at the top like a rock column.
 - **Sites.** About fifty clickable places, each with a then/now panel.
 - **Comparisons.** Pairs and sets of places that look alike, sorted into *inherited*
@@ -126,8 +127,8 @@ Each period has `id`, `name`, `ma`, `span`, `colour` (ICS), `accent`, `view`
 
 ```js
 // LANDMARKS: a modern feature, pinned to a plate. `name` reads after the word "now".
-{ plate:"NAM", lon:-80, lat:37.5, kind:"mountain", name:"the Appalachian Mts." }
-//   kind: mountain | forest | desert | ice | region   (the small icon)
+{ plate:"NAM", lon:-82.5, lat:35.8, kind:"mountain", name:"the Appalachian Mts." }
+//   kind: mountain | forest | desert | ice | region | city   (the small icon)
 
 // PERIOD_LABELS[periodId].lands: what a continent was called then
 { plate:"AFR", lon:20, lat:5, text:"Gondwana" }
@@ -136,8 +137,8 @@ Each period has `id`, `name`, `ma`, `span`, `colour` (ICS), `accent`, `view`
 { at:[66, 5], text:"Tethys Ocean" }
 ```
 
-Landmarks earlier in the list win when labels collide, and the first ten are always
-placed first. `npm test` checks that every ocean label sits over open water.
+Landmarks earlier in the list win when labels collide, and the first `LANDMARK_TOP`
+are always placed first. `npm test` checks that every ocean label sits over open water.
 
 ### A comparison
 

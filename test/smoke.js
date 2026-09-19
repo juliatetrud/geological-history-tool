@@ -99,7 +99,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ok(labelTexts().includes("PANGAEA") && labelTexts().includes("Tethys Ocean"), "Permian names Pangaea and the Tethys");
   run("setPeriod(" + ids.indexOf("now") + ", true); tMix = 1; draw();");
   ok(labelTexts().includes("Appalachian Mts.") && !labelTexts().some(t => /^now /.test(t)), 'today the landmarks drop the word "now"');
-  ok(run("LANDMARKS.every(m => PLATES[m.plate] && /^(mountain|forest|desert|ice|region)$/.test(m.kind))") &&
+  ok(run("LANDMARKS.every(m => PLATES[m.plate] && /^(mountain|forest|desert|ice|region|city)$/.test(m.kind))") &&
      run("PERIODS.every(p => PERIOD_LABELS[p.id] && PERIOD_LABELS[p.id].lands.every(l => PLATES[l.plate]))"),
      "landmarks and period labels reference real plates");
   /* every ocean label must sit over open water, at least 5 degrees from land */
