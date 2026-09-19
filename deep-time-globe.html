@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Deep Time Globe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#0B1017;
+  --shelf:#121A22;
+  --shelf-2:#18222C;
+  --line:#26343F;
+  --line-soft:#1D2831;
+  --text:#E7EEF3;
+  --text-dim:#93A6B3;
+  --text-faint:#63798A;
+  --land:#C9A97B;
+  --land-edge:#8A6F46;
+  --land-shadow:#A78A61;
+  --sea-deep:#0C2534;
+  --sea-mid:#123F55;
+  --sea-rim:#071620;
+  --ice:#EAF4F8;
+  --accent:#7FA056;
+  --accent-ink:#0B1017;
+  --fossil:#E4705A;
+  --forest:#6FBE7E;
+  --event:#C58BD6;
+  --ice-c:#7FD0E8;
+  --sea-c:#59A8D8;
+  --radius:3px;
+  --shadow:0 18px 50px rgba(0,0,0,.45);
+  --ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Newsreader","Iowan Old Style",Georgia,serif;
+}
+:root:not([data-theme="dark"]){
+  --page:#E9EDF0;
+  --page-2:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page:#0B1017; --page-2:#121A22; }
+}
+:root[data-theme="dark"]{ --page:#0B1017; --page-2:#121A22; }
+:root[data-theme="light"]{ --page:#E9EDF0; --page-2:#FFFFFF; }
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--void);
+  color:var(--text);
+  font-family:var(--ui);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(900px 620px at 30% 18%, rgba(46,86,110,.30), transparent 62%),
+    radial-gradient(700px 500px at 78% 82%, rgba(90,60,80,.20), transparent 60%);
+}
+.wrap{position:relative; z-index:1; max-width:1240px; margin:0 auto; padding:20px 20px 0;}
+
+/* ---------- masthead ---------- */
+.masthead{
+  display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
+  padding-bottom:14px; margin-bottom:16px;
+  border-bottom:1px solid var(--line-soft);
+}
+.mark{
+  font-family:var(--display);
+  font-size:clamp(23px,3.1vw,31px);
+  font-weight:400; letter-spacing:-.015em; margin:0; line-height:1.1;
+}
+.mark em{font-style:italic; font-weight:300;}
+.tag{color:var(--text-faint); font-size:13.5px; max-width:46ch;}
+.masthead-actions{margin-left:auto; display:flex; gap:8px;}
+
+/* ---------- stage ---------- */
+.stage{
+  display:grid;
+  grid-template-columns: minmax(0,1.08fr) minmax(320px,.92fr);
+  gap:22px;
+  align-items:start;
+}
+@media (max-width:900px){ .stage{grid-template-columns:1fr; gap:16px;} }
+
+.globe-cell{position:relative;}
+.globe-frame{
+  position:relative;
+  background:
+    radial-gradient(120% 120% at 50% 0%, #16212B 0%, #0C131A 58%, #080D13 100%);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+#globe{display:block; width:100%; height:auto; touch-action:none; cursor:grab;}
+#globe.dragging{cursor:grabbing;}
+#globe:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
+
+.era-stamp{
+  position:absolute; left:16px; top:14px; pointer-events:none;
+  display:flex; align-items:baseline; gap:10px;
+}
+.era-stamp .swatch{
+  width:9px; height:9px; border-radius:50%;
+  background:var(--accent); transform:translateY(-1px);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  transition:background .5s ease, box-shadow .5s ease;
+}
+.era-stamp .name{font-family:var(--display); font-size:19px; letter-spacing:-.01em;}
+.era-stamp .age{
+  font-size:12.5px; color:var(--text-faint);
+  font-variant-numeric:tabular-nums;
+}
+.globe-hint{
+  position:absolute; right:14px; bottom:12px;
+  font-size:11.5px; color:var(--text-faint); pointer-events:none;
+  opacity:.85; transition:opacity .4s ease;
+}
+.globe-hint.hide{opacity:0;}
+
+.views{
+  display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;
+}
+.chip{
+  font:inherit; font-size:12.5px; color:var(--text-dim);
+  background:var(--shelf); border:1px solid var(--line);
+  border-radius:var(--radius); padding:5px 10px; cursor:pointer;
+  transition:border-color .18s ease, color .18s ease, background .18s ease;
+}
+.chip:hover{color:var(--text); border-color:#3B4E5D;}
+.chip:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+.chip[aria-pressed="true"]{color:var(--accent-ink); background:var(--accent); border-color:var(--accent);}
+.chip.tog[aria-pressed="true"]{
+  color:var(--text); background:var(--shelf-2); border-color:#43596A;
+}
+.chip .dot{
+  display:inline-block; width:7px; height:7px; border-radius:50%;
+  margin-right:6px; transform:translateY(-1px); background:currentColor;
+}
+.views .spacer{flex:1 1 auto; min-width:8px;}
+
+/* ---------- reading panel ---------- */
+.panel{
+  background:var(--shelf);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  min-height:520px;
+  display:flex; flex-direction:column;
+  overflow:hidden;
+}
+.panel-scroll{overflow-y:auto; padding:20px 20px 22px; flex:1;}
+.panel-scroll::-webkit-scrollbar{width:9px;}
+.panel-scroll::-webkit-scrollbar-thumb{background:#2A3A47; border-radius:9px;}
+
+.fade{animation:rise .42s cubic-bezier(.22,.7,.28,1) both;}
+@keyframes rise{from{opacity:0; transform:translateY(7px);} to{opacity:1; transform:none;}}
+
+.p-head{
+  font-family:var(--display); font-weight:400;
+  font-size:26px; line-height:1.15; letter-spacing:-.018em; margin:0 0 3px;
+}
+.p-sub{color:var(--text-faint); font-size:13px; margin:0 0 16px;}
+.p-body{font-size:14.5px; color:#CBD8E1; margin:0 0 14px;}
+.p-body:last-child{margin-bottom:0;}
+
+.facts{border-top:1px solid var(--line-soft); margin:16px 0 0; padding:0; list-style:none;}
+.facts li{
+  display:grid; grid-template-columns:96px 1fr; gap:12px;
+  padding:9px 0; border-bottom:1px solid var(--line-soft);
+  font-size:13.5px;
+}
+.facts .k{color:var(--text-faint); font-size:12.5px; padding-top:1px;}
+.facts .v{color:#CBD8E1;}
+
+.sites-title{
+  font-size:12.5px; color:var(--text-faint);
+  margin:22px 0 8px; padding-bottom:7px; border-bottom:1px solid var(--line-soft);
+}
+.sites{list-style:none; margin:0; padding:0;}
+.site-btn{
+  width:100%; text-align:left; font:inherit; color:inherit; cursor:pointer;
+  background:transparent; border:0; border-bottom:1px solid var(--line-soft);
+  padding:10px 4px 10px 0; display:flex; gap:11px; align-items:flex-start;
+  transition:background .16s ease, padding-left .16s ease;
+}
+.site-btn:hover{background:rgba(255,255,255,.035); padding-left:5px;}
+.site-btn:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
+.site-btn .pin{
+  width:9px; height:9px; border-radius:50%; margin-top:6px; flex:0 0 auto;
+}
+.site-btn .st{font-size:14px; line-height:1.35;}
+.site-btn .sd{font-size:12.5px; color:var(--text-faint); line-height:1.4;}
+
+.back{
+  font:inherit; font-size:12.5px; color:var(--text-dim); cursor:pointer;
+  background:transparent; border:0; padding:0 0 12px; display:inline-flex; gap:7px;
+}
+.back:hover{color:var(--text);}
+.back:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+.kicker{
+  font-size:12.5px; color:var(--accent); margin:0 0 7px;
+  transition:color .4s ease;
+}
+
+/* then / now */
+.thennow{
+  display:grid; grid-template-columns:1fr 1fr; gap:1px;
+  background:var(--line-soft); border:1px solid var(--line-soft);
+  border-radius:var(--radius); overflow:hidden; margin:18px 0 0;
+}
+@media (max-width:420px){ .thennow{grid-template-columns:1fr;} }
+.tn{background:var(--shelf-2); padding:14px;}
+.tn h4{
+  font:inherit; font-size:12.5px; color:var(--text-faint);
+  margin:0 0 9px; font-weight:400;
+}
+.tn .scene{
+  height:56px; margin-bottom:10px; border-radius:2px; overflow:hidden;
+  display:flex; align-items:flex-end; justify-content:center; gap:3px;
+  position:relative;
+}
+.tn .scene svg{display:block; height:100%; width:auto;}
+.tn p{margin:0; font-size:13.5px; color:#C4D2DC; line-height:1.5;}
+.tn .where{font-size:12.5px; color:var(--text-faint); margin:0 0 6px;}
+
+/* ---------- timeline ribbon ---------- */
+.ribbon-wrap{margin:20px 0 0; padding-bottom:26px;}
+.ribbon-top{
+  display:flex; align-items:center; gap:12px; margin-bottom:9px;
+}
+.play{
+  font:inherit; font-size:13px; color:var(--text); cursor:pointer;
+  background:var(--shelf-2); border:1px solid var(--line);
+  border-radius:var(--radius); padding:6px 13px 6px 11px;
+  display:inline-flex; align-items:center; gap:8px;
+}
+.play:hover{border-color:#3B4E5D;}
+.play:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+.play svg{display:block;}
+.ribbon-note{font-size:12px; color:var(--text-faint);}
+
+.ribbon{
+  display:flex; width:100%; border:1px solid var(--line);
+  border-radius:var(--radius); overflow:hidden; background:var(--shelf);
+}
+.seg{
+  position:relative; flex:1 1 auto; min-width:0;
+  background:transparent; border:0; border-right:1px solid var(--void);
+  padding:0; cursor:pointer; font:inherit; color:var(--text-dim);
+  display:flex; flex-direction:column; justify-content:flex-end;
+  height:58px; transition:color .18s ease;
+}
+.seg:last-child{border-right:0;}
+.seg .bar{height:7px; width:100%; opacity:.55; transition:opacity .22s ease, height .22s ease;}
+.seg .lab{
+  font-size:11.5px; padding:7px 5px 8px; line-height:1.15;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.seg .ma{
+  display:block; font-size:10.5px; color:var(--text-faint);
+  font-variant-numeric:tabular-nums; margin-top:1px;
+}
+.seg:hover{color:var(--text);}
+.seg:hover .bar{opacity:.85;}
+.seg:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
+.seg[aria-current="true"]{color:var(--text);}
+.seg[aria-current="true"] .bar{opacity:1; height:13px;}
+.seg[aria-current="true"] .lab{color:var(--text);}
+@media (max-width:760px){
+  .ribbon{overflow-x:auto; overflow-y:hidden;}
+  .seg{flex:0 0 96px;}
+}
+
+/* ---------- about ---------- */
+dialog.about{
+  border:1px solid var(--line); background:var(--shelf);
+  color:var(--text); border-radius:var(--radius);
+  max-width:600px; width:calc(100% - 32px); padding:0; box-shadow:var(--shadow);
+}
+dialog.about::backdrop{background:rgba(4,8,12,.72);}
+.about-in{padding:24px;}
+.about h2{font-family:var(--display); font-weight:400; font-size:22px; margin:0 0 12px;}
+.about p{font-size:14px; color:#C4D2DC; margin:0 0 12px;}
+.about .close{
+  font:inherit; font-size:13px; cursor:pointer; color:var(--accent-ink);
+  background:var(--accent); border:0; border-radius:var(--radius); padding:7px 15px;
+}
+.about .close:focus-visible{outline:2px solid var(--text); outline-offset:2px;}
+
+.legend{display:flex; gap:14px; flex-wrap:wrap; margin:14px 0 0; font-size:12.5px; color:var(--text-dim);}
+.legend span{display:inline-flex; align-items:center; gap:6px;}
+.legend i{width:8px; height:8px; border-radius:50%; display:inline-block;}
+
+footer.foot{
+  border-top:1px solid var(--line-soft); margin-top:4px; padding:14px 0 30px;
+  font-size:12px; color:var(--text-faint); max-width:78ch;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <h1 class="mark">Deep Time <em>Globe</em></h1>
+    <p class="tag">Half a billion years of continents, forests, ice and animals. Drag the globe. Click a marker.</p>
+    <div class="masthead-actions">
+      <button class="chip" id="aboutBtn">About</button>
+    </div>
+  </header>
+
+  <div class="stage">
+    <div class="globe-cell">
+      <div class="globe-frame">
+        <svg id="globe" viewBox="0 0 620 620" role="img" tabindex="0"
+             aria-label="Rotatable globe showing the Earth's continents in the selected geological period"></svg>
+        <div class="era-stamp">
+          <span class="swatch" id="stampSwatch"></span>
+          <span class="name" id="stampName">Cambrian</span>
+          <span class="age" id="stampAge">510 Ma</span>
+        </div>
+        <div class="globe-hint" id="globeHint">Drag to spin</div>
+      </div>
+
+      <div class="views">
+        <button class="chip" data-view="-30,-60">South pole</button>
+        <button class="chip" data-view="0,55">North pole</button>
+        <button class="chip" data-view="-30,10">Atlantic</button>
+        <button class="chip" data-view="170,0">Pacific</button>
+        <span class="spacer"></span>
+        <button class="chip tog" id="togIce" aria-pressed="true">Ice</button>
+        <button class="chip tog" id="togGrid" aria-pressed="true">Grid</button>
+        <button class="chip tog" id="togSpin" aria-pressed="true">Auto-spin</button>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <div class="panel-scroll" id="panel"></div>
+    </aside>
+  </div>
+
+  <div class="ribbon-wrap">
+    <div class="ribbon-top">
+      <button class="play" id="playBtn" aria-label="Play through time">
+        <svg width="10" height="12" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z" fill="currentColor"/></svg>
+        <span id="playLabel">Play</span>
+      </button>
+      <span class="ribbon-note">Colours follow the international geological timescale.</span>
+    </div>
+    <div class="ribbon" id="ribbon" role="tablist" aria-label="Geological periods"></div>
+  </div>
+
+  <footer class="foot">
+    Positions are schematic. Plate reconstructions before about 200 million years ago are
+    reconstructed from palaeomagnetism and rock matching, and different research groups draw them
+    differently — the arrangement here follows the broad consensus rather than any single published model.
+  </footer>
+</div>
+
+<dialog class="about" id="aboutDlg">
+  <div class="about-in">
+    <h2>How to read this globe</h2>
+    <p>Each continent is treated as a rigid plate. Moving through the timeline rotates those plates
+    across the sphere, so you are watching the same pieces of crust travel rather than new shapes
+    being drawn. Coastlines are modern ones — a real Devonian coastline sat far inland of these edges,
+    because shallow seas flooded most continental interiors.</p>
+    <p>The poles stay fixed at the top and bottom of the sphere. Anything sitting there was, at that
+    moment, polar: that is how the Sahara ends up under an ice sheet and Antarctica ends up covered
+    in forest.</p>
+    <p>Markers are pinned to their plate, so a fossil site drifts with the ground it sits in. Each one
+    describes the place then and what grows there now.</p>
+    <div class="legend">
+      <span><i style="background:var(--fossil)"></i>Animals and fossil beds</span>
+      <span><i style="background:var(--forest)"></i>Plants and forests</span>
+      <span><i style="background:var(--event)"></i>Tectonics and climate</span>
+      <span><i style="background:var(--ice-c)"></i>Ice</span>
+      <span><i style="background:var(--sea-c)"></i>Seas</span>
+    </div>
+    <p style="margin-top:18px"><button class="close" id="aboutClose">Close</button></p>
+  </div>
+</dialog>
+
+<script>
+/* ===================== spherical geometry ===================== */
+const D = Math.PI / 180;
+const R = 268, CX = 310, CY = 310;
+
+function vec(lon, lat){
+  const a = lon*D, b = lat*D, c = Math.cos(b);
+  return [c*Math.cos(a), c*Math.sin(a), Math.sin(b)];
+}
+function rodrigues(v, k, ang){
+  const c = Math.cos(ang), s = Math.sin(ang);
+  const d = k[0]*v[0] + k[1]*v[1] + k[2]*v[2], m = 1 - c;
+  return [
+    v[0]*c + (k[1]*v[2] - k[2]*v[1])*s + k[0]*d*m,
+    v[1]*c + (k[2]*v[0] - k[0]*v[2])*s + k[1]*d*m,
+    v[2]*c + (k[0]*v[1] - k[1]*v[0])*s + k[2]*d*m
+  ];
+}
+function norm(v){
+  const n = Math.hypot(v[0], v[1], v[2]) || 1;
+  return [v[0]/n, v[1]/n, v[2]/n];
+}
+function cross(a, b){
+  return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+}
+
+/* Build the rigid transform that carries a plate from its modern pose
+   to (lon,lat,spin). Spin is clockwise-positive as seen from outside. */
+function plateTransform(home, lon, lat, spin){
+  const c0 = vec(home[0], home[1]);
+  const c1 = vec(lon, lat);
+  const dot = Math.max(-1, Math.min(1, c0[0]*c1[0] + c0[1]*c1[1] + c0[2]*c1[2]));
+  const ang = Math.acos(dot);
+  let axis = cross(c0, c1);
+  const len = Math.hypot(axis[0], axis[1], axis[2]);
+  axis = len < 1e-9 ? [0,0,1] : [axis[0]/len, axis[1]/len, axis[2]/len];
+  const spinRad = -spin * D;
+  return function(v){
+    let p = rodrigues(v, c0, spinRad);
+    if (ang > 1e-9) p = rodrigues(p, axis, ang);
+    return p;
+  };
+}
+
+/* Camera: rotate world so (viewLon, viewLat) faces the viewer at +x. */
+let viewLon = -30, viewLat = 12;
+function toCamera(v){
+  const L = viewLon*D, F = viewLat*D;
+  const cL = Math.cos(L), sL = Math.sin(L);
+  const x1 =  v[0]*cL + v[1]*sL;
+  const y1 = -v[0]*sL + v[1]*cL;
+  const z1 =  v[2];
+  const cF = Math.cos(F), sF = Math.sin(F);
+  return [ x1*cF + z1*sF, y1, -x1*sF + z1*cF ];
+}
+/* Orthographic. Points on the far side are pushed onto the limb so
+   shapes wrap around the edge instead of folding inside out. */
+function project(v){
+  const c = toCamera(v);
+  const y = c[1], z = c[2];
+  if (c[0] >= 0) return [CX + y*R, CY - z*R, true];
+  const m = Math.hypot(y, z) || 1;
+  return [CX + (y/m)*R, CY - (z/m)*R, false];
+}
+function ringPath(pts){
+  let d = "", pen = false;
+  for (const p of pts){
+    const s = project(p);
+    d += (pen ? "L" : "M") + s[0].toFixed(1) + " " + s[1].toFixed(1);
+    pen = true;
+  }
+  return d + "Z";
+}
+/* small circle of given angular radius around a centre vector */
+function capRing(centre, radiusDeg, steps){
+  const c = norm(centre);
+  let ref = Math.abs(c[2]) > 0.9 ? [1,0,0] : [0,0,1];
+  const u = norm(cross(c, ref));
+  const out = [];
+  for (let i = 0; i <= steps; i++){
+    const t = (i/steps) * Math.PI * 2;
+    const k = norm([u[0]*Math.cos(t) + cross(c,u)[0]*Math.sin(t),
+                    u[1]*Math.cos(t) + cross(c,u)[1]*Math.sin(t),
+                    u[2]*Math.cos(t) + cross(c,u)[2]*Math.sin(t)]);
+    out.push(rodrigues(c, k, radiusDeg*D));
+  }
+  return out;
+}
+
+/* ===================== plate outlines ===================== */
+/* Coordinates are modern longitude / latitude, simplified. */
+const PLATES = {
+  NAM:{ name:"North America", home:[-95,50], rings:[
+    [[-168,66],[-166,60],[-158,56],[-152,58],[-140,60],[-132,55],[-125,49],[-124,40],
+     [-117,32],[-110,24],[-105,20],[-97,16],[-92,18],[-88,21],[-86,21],[-89,29],
+     [-83,29],[-80,25],[-81,31],[-76,35],[-70,42],[-66,45],[-60,47],[-53,47],
+     [-56,52],[-64,50],[-62,58],[-78,62],[-95,57],[-92,63],[-82,67],[-95,69],
+     [-110,68],[-125,70],[-135,69],[-155,71],[-165,68]],
+    [[-45,60],[-42,62],[-30,68],[-22,70],[-20,74],[-25,78],[-33,83],[-45,83],
+     [-58,82],[-68,80],[-60,76],[-55,69],[-52,64]]
+  ]},
+  EUR:{ name:"Baltica / Europe", home:[15,52], rings:[
+    [[-9,44],[-9,38],[-6,36],[0,39],[4,43],[9,44],[13,38],[16,41],[19,40],[24,41],
+     [28,41],[30,45],[37,45],[40,44],[42,48],[48,50],[52,56],[50,62],[42,66],
+     [40,70],[30,70],[26,71],[20,70],[14,68],[12,65],[10,59],[7,58],[5,60],
+     [8,63],[4,62],[0,58],[-2,54],[-5,50],[-2,48],[-4,46]],
+    [[-6,50],[-2,51],[1,52],[-1,58],[-5,58],[-6,55],[-10,54],[-8,51]]
+  ]},
+  SIB:{ name:"Siberia", home:[105,65], rings:[
+    [[48,50],[55,52],[62,54],[72,54],[82,52],[92,52],[100,52],[110,53],[120,52],
+     [128,50],[135,45],[142,46],[145,52],[152,58],[160,60],[168,60],[178,65],
+     [176,70],[160,70],[140,73],[130,72],[110,76],[95,78],[80,76],[70,73],
+     [60,70],[52,67],[46,62],[44,55]]
+  ]},
+  CHI:{ name:"China blocks", home:[108,28], rings:[
+    [[78,36],[85,35],[92,32],[97,28],[100,22],[100,14],[104,10],[109,11],[110,18],
+     [114,22],[118,24],[122,30],[120,36],[124,40],[126,43],[132,44],[130,46],
+     [122,46],[112,45],[100,44],[90,42],[82,40]]
+  ]},
+  IND:{ name:"India", home:[79,20], rings:[
+    [[68,24],[70,21],[73,16],[76,9],[78,8],[80,13],[84,19],[87,21],[89,22],
+     [92,22],[95,26],[92,28],[88,27],[82,26],[77,30],[72,28],[68,26]]
+  ]},
+  AFR:{ name:"Africa", home:[18,2], rings:[
+    [[-17,15],[-17,21],[-12,27],[-4,35],[10,37],[20,32],[30,31],[34,28],[35,23],
+     [39,15],[43,12],[51,12],[48,4],[42,-1],[40,-10],[36,-18],[33,-26],[28,-32],
+     [20,-35],[18,-32],[14,-22],[12,-17],[9,-1],[3,6],[-4,5],[-8,4],[-13,9],[-16,12]],
+    [[35,29],[38,22],[43,13],[50,13],[56,18],[59,23],[57,25],[48,29],[41,31]]
+  ]},
+  SAM:{ name:"South America", home:[-60,-20], rings:[
+    [[-81,7],[-77,9],[-72,12],[-64,11],[-60,8],[-52,5],[-50,0],[-44,-3],[-38,-5],
+     [-35,-8],[-39,-14],[-41,-20],[-48,-26],[-54,-34],[-57,-38],[-62,-39],
+     [-64,-43],[-68,-51],[-71,-55],[-75,-52],[-73,-45],[-71,-36],[-71,-25],
+     [-70,-18],[-76,-14],[-80,-5],[-81,0],[-79,4]]
+  ]},
+  AUS:{ name:"Australia", home:[134,-25], rings:[
+    [[113,-22],[113,-27],[115,-34],[119,-35],[124,-33],[129,-32],[134,-33],
+     [137,-35],[140,-38],[144,-38],[147,-38],[150,-37],[153,-31],[153,-25],
+     [148,-20],[143,-13],[139,-11],[137,-12],[132,-12],[128,-14],[124,-16],[118,-20]]
+  ]},
+  ANT:{ name:"Antarctica", home:[0,-83], rings:[
+    [[-60,-63],[-55,-66],[-45,-70],[-30,-72],[-15,-71],[0,-70],[15,-70],[30,-68],
+     [45,-67],[60,-67],[75,-67],[90,-66],[105,-66],[120,-66],[135,-67],[150,-70],
+     [165,-74],[178,-78],[-175,-80],[-160,-78],[-150,-76],[-140,-75],[-130,-74],
+     [-120,-74],[-110,-74],[-100,-74],[-90,-73],[-80,-73],[-72,-72],[-66,-70],[-62,-67]]
+  ]},
+  MAD:{ name:"Madagascar", home:[47,-19], rings:[
+    [[44,-12],[49,-13],[50,-16],[50,-22],[47,-25],[45,-25],[43,-22],[43,-16]]
+  ]}
+};
+const PLATE_IDS = Object.keys(PLATES);
+for (const id of PLATE_IDS){
+  const p = PLATES[id];
+  p.vecs = p.rings.map(r => r.map(pt => vec(pt[0], pt[1])));
+}
+
+/* ===================== biome vignettes ===================== */
+/* Tiny silhouettes reused across sites; drawn on a 40 x 56 stage. */
+const ICONS = {
+  bare:    '<path d="M2 54h36M8 54c2-6 6-9 9-9s7 3 9 9M24 54c1-4 4-6 7-6s6 2 7 6" fill="none" stroke="CC" stroke-width="1.6" stroke-linecap="round"/>',
+  microbe: '<path d="M2 52h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="12" cy="47" rx="8" ry="4" fill="CC" opacity=".55"/><ellipse cx="27" cy="49" rx="7" ry="3" fill="CC" opacity=".35"/>',
+  moss:    '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M8 54c0-5 2-8 4-8s4 3 4 8M20 54c0-7 2-10 4-10s4 3 4 10M30 54c0-4 2-6 3-6s3 2 3 6" fill="none" stroke="CC" stroke-width="1.5" stroke-linecap="round"/>',
+  lycopod: '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M14 54V16M27 54V26" stroke="CC" stroke-width="2.2" stroke-linecap="round"/><path d="M14 16l-7-8M14 16l7-8M14 20l-6-6M14 20l6-6M27 26l-5-6M27 26l5-6" fill="none" stroke="CC" stroke-width="1.5" stroke-linecap="round"/>',
+  fern:    '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M20 54V28" stroke="CC" stroke-width="2" stroke-linecap="round"/><path d="M20 28c-6-2-10-7-11-13 7 1 11 5 11 11M20 28c6-2 10-7 11-13-7 1-11 5-11 11" fill="CC" opacity=".7"/>',
+  conifer: '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M20 54V44" stroke="CC" stroke-width="2.4"/><path d="M20 8l9 16h-18zM20 20l11 16h-22zM20 32l13 14h-26z" fill="CC" opacity=".85"/>',
+  cycad:   '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M20 54V32" stroke="CC" stroke-width="3.2" stroke-linecap="round"/><path d="M20 32C12 30 6 24 4 16c9 1 15 7 16 14M20 32c8-2 14-8 16-16-9 1-15 7-16 14M20 30c-4-6-5-13-3-20 5 6 6 13 3 20" fill="CC" opacity=".75"/>',
+  broadleaf:'<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M20 54V34" stroke="CC" stroke-width="2.6" stroke-linecap="round"/><path d="M20 36c-9 0-14-6-14-12S11 10 20 10s14 8 14 14-5 12-14 12z" fill="CC" opacity=".8"/>',
+  palm:    '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M19 54c0-14 1-24 3-32" fill="none" stroke="CC" stroke-width="2.4" stroke-linecap="round"/><path d="M22 20c-7-4-13-3-17 2 6-1 11 0 16 2M22 20c7-4 13-3 17 2-6-1-11 0-16 2M22 20c-2-7 0-12 5-15-2 5-3 10-2 15" fill="CC" opacity=".75"/>',
+  grass:   '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M7 54c1-9 3-14 5-17M14 54c0-11 2-17 4-21M22 54c0-10 2-16 5-19M30 54c0-8 2-12 4-15" fill="none" stroke="CC" stroke-width="1.6" stroke-linecap="round"/>',
+  scrub:   '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><circle cx="11" cy="44" r="7" fill="CC" opacity=".6"/><circle cx="26" cy="47" r="5.5" fill="CC" opacity=".45"/><path d="M11 54v-6M26 54v-4" stroke="CC" stroke-width="1.4"/>',
+  dune:    '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M2 54c6-12 12-16 18-12s10 2 18-6v18z" fill="CC" opacity=".45"/>',
+  ice:     '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M2 54l10-22 8 10 7-16 11 28z" fill="CC" opacity=".55"/><path d="M12 32l3 6 5-9" fill="none" stroke="CC" stroke-width="1.3"/>',
+  tundra:  '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M2 50c8-3 14-3 20 0s12 3 16 1" fill="none" stroke="CC" stroke-width="1.5"/><circle cx="10" cy="46" r="2.4" fill="CC" opacity=".7"/><circle cx="24" cy="45" r="2" fill="CC" opacity=".55"/><circle cx="33" cy="47" r="1.8" fill="CC" opacity=".5"/>',
+  taiga:   '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M11 12l7 30H4zM28 22l6 20H22z" fill="CC" opacity=".75"/>',
+  sea:     '<path d="M2 38c5-4 8-4 13 0s8 4 13 0 8-4 10-1M2 46c5-4 8-4 13 0s8 4 13 0 8-4 10-1M2 54c5-4 8-4 13 0s8 4 13 0" fill="none" stroke="CC" stroke-width="1.6" stroke-linecap="round"/>',
+  reef:    '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M10 54V38c0-4 4-4 4 0v6M14 44c0-5 5-5 5 0v10M24 54V40c0-4 4-4 4 0v4M28 44c0-4 4-4 4 0v10" fill="none" stroke="CC" stroke-width="1.8" stroke-linecap="round"/>',
+  volcano: '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M4 54l12-26h8l12 26z" fill="CC" opacity=".55"/><path d="M17 28c1-6 3-9 3-14M23 28c0-5 2-8 4-12" fill="none" stroke="CC" stroke-width="1.5" stroke-linecap="round"/>',
+  city:    '<path d="M2 54h36" stroke="CC" stroke-width="1.6" stroke-linecap="round"/><path d="M6 54V32h8v22M18 54V22h8v32M30 54V38h6v16" fill="CC" opacity=".5"/>',
+  swamp:   '<path d="M2 50c5-3 8-3 13 0s8 3 13 0 8-3 10-1" fill="none" stroke="CC" stroke-width="1.5"/><path d="M12 50V26M26 50V32" stroke="CC" stroke-width="2.2" stroke-linecap="round"/><path d="M12 26l-6-6M12 26l6-6M26 32l-5-5M26 32l5-5" fill="none" stroke="CC" stroke-width="1.5" stroke-linecap="round"/>'
+};
+function iconSVG(key, colour){
+  const body = (ICONS[key] || ICONS.bare).split("CC").join(colour);
+  return '<svg viewBox="0 0 40 56" aria-hidden="true">' + body + '</svg>';
+}
+
+/* ===================== the timeline =====================
+   plates: [ centre longitude, centre latitude, spin (clockwise, degrees) ]
+   Sites are pinned to a plate at modern lon/lat and travel with it.        */
+
+const PERIODS = [
+{
+  id:"cam", name:"Cambrian", ma:510, span:"538–485 million years ago",
+  colour:"#7FA056", accent:"#9CBE72", view:[-30,-12],
+  headline:"Gondwana is still being welded together",
+  body:[
+    "The continents are scattered and unfamiliar. Laurentia — the old core of North America — sits on the equator, turned about a quarter turn from the way it faces today, with its present-day east coast looking south into the Iapetus Ocean. Baltica and Siberia are separate islands.",
+    "Gondwana is assembling out of Africa, South America, India, Australia and Antarctica, and the pieces that will become Australia and East Antarctica are in the tropics. Warm shallow seas cover most continental interiors, and animals with hard parts have just appeared in them.",
+    "Land is empty. Not sparse — empty. There are no plants, no soil in the modern sense, and nothing taller than a bacterial crust."
+  ],
+  facts:[
+    ["North pole","Open ocean, as it will be for most of the next 450 million years"],
+    ["South pole","Near the edge of Gondwana, around what is now West Africa and northern Brazil"],
+    ["Sea level","Very high; continental interiors flooded"],
+    ["Land plants","None"]
+  ],
+    plates:{ NAM:[27.9,-2,34.2], EUR:[66.3,-54.7,19.9], SIB:[-50.7,14,68], CHI:[576.7,-10,75.1],
+           IND:[187.9,-40.8,-28.4], AFR:[240.2,-77.7,58.7], SAM:[-81.5,-46.9,86.4],
+           AUS:[187.2,-13.2,-89.6], ANT:[-140.7,-32.7,41.1], MAD:[189.1,-52.1,20.2] },
+  ice:[],
+  sites:[
+    { plate:"NAM", lon:-116.5, lat:51.4, cat:"fossil",
+      title:"Burgess Shale", sub:"508 million years old",
+      body:"Mud slid off the edge of a tropical carbonate platform and buried soft-bodied animals so fast that eyes, guts and gill filaments survived. Anomalocaris, Opabinia and Hallucigenia come from here, and they record a point when the basic body plans of animals were still being tried out.",
+      then:{ where:"Equatorial sea floor", icon:"reef",
+             text:"A steep drowned reef wall in warm water a few degrees from the equator." },
+      now:{ where:"Yoho National Park, British Columbia", icon:"conifer",
+            text:"The same rock now sits 2,300 metres up a ridge in the Canadian Rockies, in subalpine forest of Engelmann spruce and subalpine fir, under snow much of the year." } },
+    { plate:"CHI", lon:102.6, lat:24.7, cat:"fossil",
+      title:"Chengjiang", sub:"518 million years old",
+      body:"Ten million years older than the Burgess Shale and preserved on a separate small continent drifting in the eastern ocean. Its fossils include Myllokunmingia and Haikouichthys — finger-length swimmers with a stiffening rod down the back, which puts them close to the ancestry of all vertebrates.",
+      then:{ where:"Shallow tropical shelf", icon:"sea",
+             text:"A quiet muddy sea floor on a small isolated block, repeatedly smothered by storm mud." },
+      now:{ where:"Yunnan, China", icon:"broadleaf",
+            text:"Red-earth hills above Fuxian Lake, subtropical and humid, with evergreen oak, pine and terraced farmland." } },
+    { plate:"ANT", lon:160, lat:-84, cat:"fossil",
+      title:"The first reefs, in Antarctica", sub:"Shackleton Limestone",
+      body:"Archaeocyaths — cup-shaped sponge relatives — built the first animal reefs, and some of the best preserved are in the Transantarctic Mountains. Reef builders need warm, clear, shallow water, which is direct evidence of where this rock formed.",
+      then:{ where:"Tropical shallow sea", icon:"reef",
+             text:"Clear warm water with reef mounds a few metres high, inside the tropics." },
+      now:{ where:"Transantarctic Mountains", icon:"ice",
+            text:"Exposed rock and ice, roughly 400 km from the South Pole. Antarctica has two native flowering plants in total, both on the peninsula, and neither grows anywhere near here." } },
+    { plate:"AUS", lon:137.5, lat:-35.7, cat:"fossil",
+      title:"Emu Bay Shale", sub:"Kangaroo Island",
+      body:"One of only a handful of places where Cambrian eyes are preserved in detail. The compound eyes found here belong to Anomalocaris and hold more than 16,000 lenses each, which says that fast visual hunting was already underway.",
+      then:{ where:"Tropical Gondwanan margin", icon:"sea",
+             text:"A shallow basin on the warm northern edge of Gondwana." },
+      now:{ where:"Kangaroo Island, South Australia", icon:"scrub",
+            text:"Cliffs above a cold southern-ocean beach, with mallee eucalypt scrub and coastal heath behind them." } },
+    { plate:"AFR", lon:24, lat:-12, cat:"forest",
+      title:"An empty continent", sub:"What was growing on land",
+      body:"Nothing, in any way we would recognise. No roots meant no soil and no riverbanks, so rivers spread into wide braided sheets across bare rock and sand. Damp hollows held crusts of cyanobacteria and green algae, and that was the whole of the land flora.",
+      then:{ where:"Bare rock across every continent", icon:"microbe",
+             text:"Coloured microbial films in wet ground; everything else scoured stone." },
+      now:{ where:"Central Africa", icon:"broadleaf",
+            text:"The same ground carries the Congo rainforest, with a canopy 40 metres up and about 10,000 plant species." } }
+  ]
+},
+{
+  id:"ord", name:"Ordovician", ma:445, span:"485–443 million years ago",
+  colour:"#009270", accent:"#2BB894", view:[-20,-40],
+  headline:"An ice sheet grows over the Sahara",
+  body:[
+    "Gondwana has drifted over the South Pole, and the part of it now sitting on the pole is northwest Africa. An ice sheet spreads across what will become Algeria, Libya, Mauritania and Niger, and the grooves its base cut into the bedrock are still visible in the desert.",
+    "That ice locks up seawater and drops sea level sharply. The shallow seas covering the continents drain, and roughly 85 percent of marine species die — the first of the five great mass extinctions, and by species count the second worst.",
+    "Meanwhile something small is happening on land. The first plants, liverwort-grade and only millimetres tall, have taken hold in damp ground."
+  ],
+  facts:[
+    ["North pole","Open ocean"],
+    ["South pole","Under what is now the central Sahara"],
+    ["Ice","A continental ice sheet across northwest Gondwana"],
+    ["Land plants","Millimetre-scale, liverwort-like, in wet ground only"]
+  ],
+    plates:{ NAM:[-71.5,-8.1,-11.9], EUR:[-14.9,-48.4,11.9], SIB:[-78.8,16,72],
+           CHI:[512.4,-13.6,28], IND:[206.5,-31,32], AFR:[232.8,-71.1,122.3],
+           SAM:[-72.4,-47.9,125.7], AUS:[206.7,-3.4,-67.6], ANT:[-124.4,-25.2,99.7],
+           MAD:[206.9,-42.4,110.3] },
+  ice:[{ plate:"AFR", lon:2, lat:24, r:30 }],
+  sites:[
+    { plate:"AFR", lon:3, lat:26, cat:"ice",
+      title:"The Saharan ice sheet", sub:"Hirnantian glaciation",
+      body:"Glacial pavements, dropstones and tillites run in a belt across North Africa. In parts of southern Algeria you can stand on bedrock scored by parallel grooves pointing away from a polar ice dome, in a landscape where it now rains a few millimetres a year.",
+      then:{ where:"Polar ice cap", icon:"ice",
+             text:"Kilometres of ice, grinding north from a dome centred close to the pole." },
+      now:{ where:"Algeria, Libya, Mauritania", icon:"dune",
+            text:"Hyper-arid desert. Date palms in oases, acacia and tamarisk along dry watercourses." } },
+    { plate:"NAM", lon:-73.8, lat:42.8, cat:"event",
+      title:"The first Appalachian mountains", sub:"Taconic orogeny",
+      body:"A chain of volcanic islands in the Iapetus Ocean ran into the eastern edge of Laurentia and was scraped onto it. This is the first of three collisions that will build the Appalachians, and the deformed rock it produced is what you walk on in the Taconic Range and the Berkshires.",
+      then:{ where:"Equatorial island-arc collision", icon:"volcano",
+             text:"Volcanic islands crumpling against a tropical carbonate shelf, shedding mud westward into a deepening trough." },
+      now:{ where:"Eastern New York and western Massachusetts", icon:"broadleaf",
+            text:"Worn-down ridges under northern hardwood forest — sugar maple, American beech, yellow birch — with hemlock in the ravines." } },
+    { plate:"AFR", lon:-6, lat:31, cat:"fossil",
+      title:"Fezouata Biota", sub:"Early in the period, about 478 Ma",
+      body:"A soft-bodied fauna preserved in cold, high-latitude water, which is unusual — most such deposits are tropical. It shows Cambrian-style animals, including giant filter-feeding relatives of Anomalocaris two metres long, still going strong tens of millions of years after they were thought to have died out.",
+      then:{ where:"Cold shelf sea, far south", icon:"sea",
+             text:"Storm-swept muddy shelf at high southern latitude, on the margin of Gondwana." },
+      now:{ where:"Zagora, Morocco", icon:"dune",
+            text:"Stony desert on the edge of the Sahara, with date palm groves along the Draa valley." } },
+    { plate:"AFR", lon:56, lat:21, cat:"forest",
+      title:"The first land plants", sub:"Cryptospores in Oman",
+      body:"Tough, four-part spore clusters turn up in Ordovician rock long before any recognisable plant fossil. They match what liverworts produce, and they are the earliest firm evidence of plants living out of water. Nothing here is taller than a coin is wide.",
+      then:{ where:"Damp ground, Gondwanan margin", icon:"moss",
+             text:"Low mats hugging wet sand and rock, with no roots and no vascular tissue." },
+      now:{ where:"Oman", icon:"dune",
+            text:"Desert and gravel plain, with frankincense trees on the escarpments and a narrow monsoon-green belt in the far south." } }
+  ]
+},
+{
+  id:"sil", name:"Silurian", ma:425, span:"443–419 million years ago",
+  colour:"#B3E1B6", accent:"#B3E1B6", view:[-10,-20],
+  headline:"Plants get stems, and continents start to collide",
+  body:[
+    "The ice melts, sea level rises, and reefs rebuild across the tropics. Baltica is closing in on Laurentia and the Iapetus Ocean is narrowing fast; the collision is already throwing up the Caledonian mountains along what will become Scotland, Norway and eastern Greenland.",
+    "On land, Cooksonia appears: a few centimetres tall, leafless, just a forking green stem with a spore capsule on each tip. It is the first plant with vascular tissue — internal plumbing — and that single innovation is what eventually makes trees possible.",
+    "The first animals with jaws are in the water, and millipedes and early arachnids are out of it."
+  ],
+  facts:[
+    ["North pole","Open ocean"],
+    ["South pole","Over Gondwana, near what is now southern Africa"],
+    ["Mountains rising","The Caledonides, along the closing Iapetus suture"],
+    ["Tallest plant","A few centimetres"]
+  ],
+    plates:{ NAM:[-38.9,-13,-18.8], EUR:[10.4,-34.4,28.4], SIB:[-63.9,22,62], CHI:[358.8,-16,38],
+           IND:[199.7,-37.7,0.7], AFR:[237.3,-76.9,95], SAM:[-71.5,-48.9,108.4],
+           AUS:[200.2,-10.1,-73.3], ANT:[-129.3,-31.1,77.4], MAD:[200,-49.1,72.7] },
+  ice:[],
+  sites:[
+    { plate:"EUR", lon:-2.9, lat:52, cat:"forest",
+      title:"Cooksonia", sub:"The first vascular plant",
+      body:"Found in Welsh and Irish rock, and no bigger than a thumbnail. A bare green stem forks once or twice and ends in a rounded spore capsule, with a thin strand of water-conducting cells running up the middle. Everything from a fern to a redwood is built on that strand.",
+      then:{ where:"Wet coastal flats, Avalonia", icon:"moss",
+             text:"Patches of low forking stems on mud and sand beside the sea, with no leaves and no roots." },
+      now:{ where:"Welsh Borders", icon:"broadleaf",
+            text:"Sheep pasture, hedgerow, and oak and ash woodland on the old red hills." } },
+    { plate:"EUR", lon:17, lat:57.5, cat:"event",
+      title:"The Caledonian collision", sub:"Iapetus closes",
+      body:"Baltica swings into Laurentia and the ocean between them is squeezed shut. The resulting mountain belt was Himalayan in scale. Its eroded roots are now split across four places that used to be continuous: the Scottish Highlands, the Norwegian mountains, eastern Greenland, and the northern Appalachians.",
+      then:{ where:"A continental collision at about 30° south", icon:"volcano",
+             text:"A rising mountain chain along a suture, shedding sand into basins on either side." },
+      now:{ where:"Scandinavia and Scotland", icon:"taiga",
+            text:"Worn plateaus and fjords under spruce, pine and birch in Norway; heather moor and remnant Caledonian pinewood in Scotland." } },
+    { plate:"AUS", lon:148, lat:-34, cat:"fossil",
+      title:"Reefs return", sub:"After the Ordovician extinction",
+      body:"Tabulate and rugose corals and stromatoporoid sponges rebuild tropical reef systems, and Silurian reef limestone is quarried today from Gotland to New South Wales. Sea scorpions — eurypterids, some over two metres — are the largest arthropods that have ever lived.",
+      then:{ where:"Warm shelf sea", icon:"reef",
+             text:"Coral and sponge reef mounds in clear, shallow, tropical water." },
+      now:{ where:"New South Wales", icon:"scrub",
+            text:"Limestone hills and caves inland of the Great Dividing Range, under dry eucalypt woodland." } }
+  ]
+},
+{
+  id:"dev", name:"Devonian", ma:385, span:"419–359 million years ago",
+  colour:"#CB8C37", accent:"#DFA359", view:[-15,-8],
+  headline:"Forests appear, and fish start walking",
+  body:[
+    "Laurentia and Baltica are now one continent, Laurussia, straddling the equator. Its interior is a hot dry basin filling with rust-red sand — the Old Red Sandstone, which is why so much of Britain, Norway and the Catskills is built of red rock.",
+    "Plants solve the height problem. Archaeopteris grows woody trunks and real roots, and by the late Devonian there are forests thirty metres tall. Roots crack rock into soil, soil washes nutrients into rivers, rivers feed algal blooms, and the resulting oxygen crashes help drive a mass extinction in the sea.",
+    "In the shallows, lobe-finned fish with wrists and ribs are starting to prop themselves up in the weeds."
+  ],
+  facts:[
+    ["North pole","Open ocean"],
+    ["South pole","Over Gondwana, near what is now Argentina and southern Africa"],
+    ["New that period","Wood, roots, seeds, soil and forests"],
+    ["Atmosphere","Carbon dioxide falling steeply as forests spread"]
+  ],
+    plates:{ NAM:[6.2,1,33.2], EUR:[41.8,-16.3,-9], SIB:[62.8,28,40], CHI:[225.3,-14,34],
+           IND:[185.6,-47,-28.6], AFR:[116.2,-88.7,9], SAM:[-61.7,-57.1,53],
+           AUS:[192.7,-20,-92.2], ANT:[-136.6,-44.5,3.3], MAD:[180.9,-58.1,-20] },
+  ice:[],
+  sites:[
+    { plate:"NAM", lon:-74.4, lat:42.4, cat:"forest",
+      title:"The Gilboa forest", sub:"386 million years old",
+      body:"Quarrying for a dam in 1920 turned up dozens of fossil tree stumps standing where they grew. They belong to Eospermatopteris, a tree the shape of a giant celery stalk with a flared base and a crown of branches instead of leaves. A nearby site at Cairo preserves the root systems of Archaeopteris, spreading more than eleven metres.",
+      then:{ where:"Tropical river plain, about 15° south", icon:"fern",
+             text:"A humid floodplain forest of tall branching trunks, repeatedly buried by floods." },
+      now:{ where:"Schoharie County, New York", icon:"broadleaf",
+            text:"Catskill hill country under maple, beech and hemlock. Some of the fossil stumps are set up in the village of Gilboa." } },
+    { plate:"EUR", lon:-2.8, lat:57.4, cat:"fossil",
+      title:"Rhynie chert", sub:"407 million years old",
+      body:"A hot spring flooded a marshy plain with silica-rich water and turned an entire ecosystem to glass, cell by cell. You can see individual plant cells, fungal threads inside roots, springtails, mites, and the oldest known insect. It is the closest thing we have to a photograph of an early land ecosystem.",
+      then:{ where:"Hot springs on an arid rift floor", icon:"moss",
+             text:"Low tufted plants around silica-crusted pools, in a dry equatorial basin." },
+      now:{ where:"Aberdeenshire, Scotland", icon:"grass",
+            text:"Flat farmland — barley, grass leys and a scatter of conifer shelterbelts. There is nothing to see above ground." } },
+    { plate:"NAM", lon:-83, lat:77, cat:"fossil",
+      title:"Tiktaalik", sub:"375 million years old",
+      body:"A metre-and-a-half predator with gills, scales and fins, but also a neck, ribs strong enough for gravity, and a shoulder, elbow and wrist inside its front fin. It lived in shallow weed-choked streams, and it sits about as close to the fish-to-tetrapod transition as any fossil we have.",
+      then:{ where:"Tropical river delta near the equator", icon:"swamp",
+             text:"Warm, shallow, seasonally drying channels choked with plants." },
+      now:{ where:"Ellesmere Island, Nunavut", icon:"tundra",
+            text:"High Arctic polar desert at 77° north. Purple saxifrage, Arctic willow a few centimetres tall, and months of darkness." } },
+    { plate:"AFR", lon:26, lat:-33, cat:"fossil",
+      title:"Tetrapods outside the tropics", sub:"Waterloo Farm",
+      body:"Tetrapod fossils from South Africa show that four-limbed animals were not restricted to the tropics — these lived at high southern latitudes in cold water with short winter days. It undercuts the old picture of tetrapods evolving only in warm equatorial swamps.",
+      then:{ where:"Cold estuary, about 55° south", icon:"sea",
+             text:"A cold tidal estuary a long way south of the Devonian tropics." },
+      now:{ where:"Eastern Cape, South Africa", icon:"scrub",
+            text:"Thicket and grassland near Makhanda, warm-temperate, with spekboom and aloes on the slopes." } }
+  ]
+},
+{
+  id:"car", name:"Carboniferous", ma:310, span:"359–299 million years ago",
+  colour:"#67A599", accent:"#7FBFB2", view:[-5,-14],
+  headline:"Coal swamps on the equator, ice at the pole",
+  body:[
+    "Laurussia sits squarely on the equator and is covered in wet forest. The trees are lycopsids — Lepidodendron and Sigillaria — up to fifty metres tall, with green photosynthetic bark and shallow forked anchors instead of proper roots. They grow fast, fall, and pile up in stagnant water.",
+    "That peat is the coal that later fuelled the industrial revolution. Nearly every major coal field in the eastern United States, Britain, Belgium, Germany and Poland is the compressed floor of these swamps.",
+    "At the same time Gondwana is sliding over the South Pole and growing an ice sheet that will last some seventy million years. The planet has a hot wet equator and a frozen southern hemisphere at once. Oxygen reaches about 30 percent of the atmosphere, roughly half again today's level, and insects get enormous."
+  ],
+  facts:[
+    ["North pole","Open ocean"],
+    ["South pole","Over southern Gondwana, under a long-lived ice sheet"],
+    ["Oxygen","Around 30 percent, the highest in Earth's history"],
+    ["Largest insect","Meganeura, a dragonfly relative with a 70 cm wingspan"]
+  ],
+    plates:{ NAM:[-10.7,14.4,8], EUR:[29.1,9.1,-16.3], SIB:[128.2,34.3,35.1], CHI:[240,0.4,8],
+           IND:[52.4,-64.7,28.3], AFR:[2.4,-34.4,17.5], SAM:[-38.6,-31.9,2.5],
+           AUS:[121.6,-65.6,-83.3], ANT:[-30,-78.2,-24], MAD:[34.1,-57.4,1.2] },
+  ice:[{ plate:"ANT", lon:0, lat:-83, r:26 },{ plate:"AFR", lon:26, lat:-30, r:20 }],
+  sites:[
+    { plate:"NAM", lon:-64.4, lat:45.7, cat:"forest",
+      title:"Joggins Fossil Cliffs", sub:"Nova Scotia",
+      body:"Tides in the Bay of Fundy strip the cliff face back every year and expose fossil lycopsid trunks still standing upright in the rock, buried where they grew. Hollow stumps acted as pit traps, and one of them contained Hylonomus, among the earliest known reptiles.",
+      then:{ where:"Equatorial coastal swamp", icon:"lycopod",
+             text:"A subsiding delta of peat forest, flooded and reburied again and again." },
+      now:{ where:"Bay of Fundy, Nova Scotia", icon:"conifer",
+            text:"Red sea cliffs under the world's highest tides, backed by Acadian forest of red spruce, balsam fir, maple and birch." } },
+    { plate:"NAM", lon:-88.1, lat:41.4, cat:"fossil",
+      title:"Mazon Creek", sub:"Illinois",
+      body:"Animals that fell into a muddy river delta were sealed inside iron carbonate nodules that split open along the fossil. The result is a rare record of soft-bodied swamp life — jellyfish, worms, insects — including the Tully monster, an animal so strange that palaeontologists still argue about which part of the animal kingdom it belongs to.",
+      then:{ where:"Equatorial delta", icon:"swamp",
+             text:"Brackish channels and mudflats at the edge of a coal forest, on the equator." },
+      now:{ where:"Grundy County, Illinois", icon:"grass",
+            text:"Strip-mine spoil heaps and reclaimed prairie, now mostly maize, soybean and tallgrass restoration." } },
+    { plate:"EUR", lon:-1.5, lat:53.5, cat:"forest",
+      title:"The coal measures", sub:"Northern England",
+      body:"Cyclic layers of sandstone, shale, seatearth and coal, repeated dozens of times as sea level rose and fell with the southern ice sheet. Each coal seam is a drowned forest. The whole industrial geography of Britain sits on top of them.",
+      then:{ where:"Equatorial peat forest", icon:"lycopod",
+             text:"Fifty-metre lycopsid trees with green trunks, over an understorey of tree ferns and horsetails." },
+      now:{ where:"Yorkshire and the East Midlands", icon:"grass",
+            text:"Farmland and former pit villages. Oak, ash and sycamore in the hedges; the mines are closed and the spoil heaps are grassed over." } },
+    { plate:"AFR", lon:28, lat:-27, cat:"ice",
+      title:"The Dwyka glaciation", sub:"Karoo ice age",
+      body:"Under the Karoo's rock lies the Dwyka tillite: unsorted rubble dumped by an ice sheet, resting on bedrock polished and scratched by ice. The same glacial layer appears in Brazil, India, Australia and Antarctica, and matching it across those continents was a central piece of evidence for continental drift.",
+      then:{ where:"Under a polar ice sheet", icon:"ice",
+             text:"Continental ice, thick enough to grind and polish the bedrock beneath it." },
+      now:{ where:"Northern Cape and Free State, South Africa", icon:"scrub",
+            text:"Semi-arid Karoo, hot and thorny, with dwarf shrubs and sweet grasses on the plains." } },
+    { plate:"EUR", lon:3, lat:49.5, cat:"fossil",
+      title:"Giant insects", sub:"Meganeura",
+      body:"Insects breathe by diffusion through tubes, so body size is limited by how much oxygen the air holds. At roughly 30 percent oxygen that ceiling lifts. Meganeura had a wingspan of about 70 centimetres, and millipede relatives in the genus Arthropleura reached two and a half metres.",
+      then:{ where:"Oxygen-rich equatorial forest", icon:"fern",
+             text:"Humid forest floor and standing water, with no flying vertebrates yet to compete with." },
+      now:{ where:"Northern France and Belgium", icon:"broadleaf",
+            text:"Beech and oak woodland, arable plain, and the old coal basin of the Nord." } }
+  ]
+},
+{
+  id:"per", name:"Permian", ma:260, span:"299–252 million years ago",
+  colour:"#F04028", accent:"#F0674F", view:[10,-10],
+  headline:"One continent, from pole to pole",
+  body:[
+    "Pangaea is assembled. You could walk from the north of Siberia to the south of Antarctica without crossing salt water, and a single ocean, Panthalassa, covers the rest of the planet. Only the Chinese blocks are still out on their own in the Tethys.",
+    "A continent that big generates a monsoon that never reaches its middle. The interior is desert on a scale the world has not had since — sand seas thousands of kilometres across, now preserved as the red sandstones of the American southwest and northern Europe.",
+    "At the southern end, Glossopteris forests cover Gondwana, including land within a few degrees of the pole. Then, at the very end of the period, the Siberian Traps erupt, and about 80 to 90 percent of all species disappear."
+  ],
+  facts:[
+    ["North pole","Open ocean"],
+    ["South pole","Over Antarctica and southern Australia"],
+    ["Climate","A supercontinental monsoon with a vast dead-dry interior"],
+    ["Ending","The largest mass extinction known, 252 million years ago"]
+  ],
+    plates:{ NAM:[-23.1,19.3,0], EUR:[19,26.1,-13.8], SIB:[18.5,66.2,7.5], CHI:[283.7,2,39],
+           IND:[48.1,-49.5,32.1], AFR:[3.3,-24.9,5.6], SAM:[-35,-32.2,-18.6],
+           AUS:[93.5,-56.2,-85.3], ANT:[13.8,-70.4,-42.1], MAD:[34.5,-43.1,-7.6] },
+  ice:[],
+  sites:[
+    { plate:"ANT", lon:162, lat:-85, cat:"forest",
+      title:"Polar forests in Antarctica", sub:"Glossopteris",
+      body:"Fossil tree trunks and leaf mats occur in the Transantarctic Mountains at latitudes within about 20° of the South Pole. Glossopteris was deciduous — it dropped its leaves for the polar winter, and its growth rings are wide and abrupt, the signature of a plant racing through a short intense summer.",
+      then:{ where:"About 20° from the South Pole", icon:"cycad",
+             text:"Seasonal forest of tongue-leaved seed plants on a river plain, dark for months at a time." },
+      now:{ where:"Transantarctic Mountains", icon:"ice",
+            text:"Rock, ice and wind. The fossil wood weathers out of cliffs that sit above a two-kilometre ice sheet." } },
+    { plate:"AFR", lon:24, lat:-32, cat:"fossil",
+      title:"The Karoo Basin", sub:"South Africa",
+      body:"The thickest continuous record anywhere of life on land through the end-Permian extinction. Below the boundary the rock is full of dicynodonts and other therapsids — mammal ancestors with differentiated teeth. Above it, for millions of years, almost the only large animal is the stocky survivor Lystrosaurus.",
+      then:{ where:"Cool temperate river plain, about 60° south", icon:"cycad",
+             text:"Broad meandering rivers across a Glossopteris floodplain, drying out as the extinction approaches." },
+      now:{ where:"Great Karoo, South Africa", icon:"scrub",
+            text:"Semi-desert of low shrubs and flat-topped hills, hot by day and cold at night, grazed by merino sheep." } },
+    { plate:"SIB", lon:94, lat:69, cat:"event",
+      title:"The Siberian Traps", sub:"252 million years ago",
+      body:"Lava covered an area the size of Western Europe, but the worse problem was what it burned through: a thick basin of coal, salt and organic shale. The resulting carbon dioxide, methane and halogens acidified the oceans, stripped ozone and drove sustained global warming, and the extinction followed.",
+      then:{ where:"Flood basalt province", icon:"volcano",
+             text:"Repeated fissure eruptions across northern Pangaea over roughly a million years." },
+      now:{ where:"Putorana Plateau, Siberia", icon:"taiga",
+            text:"A stepped basalt plateau cut by canyons and waterfalls, under open Dahurian larch forest on permafrost." } },
+    { plate:"NAM", lon:-110, lat:38, cat:"event",
+      title:"The great sand sea", sub:"Pangaea's interior",
+      body:"The Coconino and Cedar Mesa sandstones are lithified dunes, with cross-bedding that records wind directions and trackways of small reptiles running up dune faces. Equivalent dune fields of the same age lie beneath the North Sea and much of northern Germany.",
+      then:{ where:"Continental desert", icon:"dune",
+             text:"A dune field of continental scale, thousands of kilometres from any coast." },
+      now:{ where:"Colorado Plateau", icon:"conifer",
+            text:"High desert of piñon pine, juniper and sagebrush, with the old dunes standing as the pale cliffs of Zion and the Grand Canyon's upper walls." } },
+    { plate:"AUS", lon:150.5, lat:-32.5, cat:"forest",
+      title:"Gondwanan coal", sub:"Sydney Basin",
+      body:"Glossopteris peat built coal in Australia, India, South Africa, South America and Antarctica — all of it at high southern latitudes, all of it in the same distinctive flora. The match was one of the original arguments for a single southern supercontinent.",
+      then:{ where:"Cool temperate swamp, about 50° south", icon:"cycad",
+             text:"Boggy forest of Glossopteris with a strongly seasonal, low-angle light regime." },
+      now:{ where:"Hunter Valley, New South Wales", icon:"scrub",
+            text:"Open eucalypt woodland, vineyards and large open-cut coal mines working the same Permian seams." } }
+  ]
+},
+{
+  id:"tri", name:"Triassic", ma:220, span:"252–201 million years ago",
+  colour:"#812B92", accent:"#B061C6", view:[5,0],
+  headline:"Life rebuilds, and the first dinosaurs appear",
+  body:[
+    "Pangaea is still whole but has begun to pull apart along a line that will become the Atlantic. Rift valleys open through what is now the Connecticut Valley, New Jersey and Morocco, fill with lakes, and then fill with lava.",
+    "Recovery from the end-Permian extinction takes several million years. When ecosystems do rebuild, the winners are new: the first turtles, the first mammals, the first pterosaurs, and — about 231 million years ago, in what is now Argentina — the first dinosaurs, which spend the whole period as a minor group.",
+    "There is no ice at either pole and no grass anywhere. Conifers, cycads, ginkgos and ferns make up the vegetation."
+  ],
+  facts:[
+    ["North pole","Open ocean"],
+    ["South pole","Ocean off Antarctica, with no ice sheet"],
+    ["First appearing","Dinosaurs, mammals, pterosaurs, turtles, crocodile ancestors"],
+    ["Ending","Extinction at 201 Ma as Pangaea's rifts erupt"]
+  ],
+    plates:{ NAM:[-31.5,24,-27.7], EUR:[8,28.1,19.9], SIB:[45.2,59.1,29.8], CHI:[205,12,24],
+           IND:[48.6,-50.2,34.9], AFR:[4.1,-24.9,8], SAM:[-34.2,-31.6,-15.2],
+           AUS:[94.7,-57.1,-80.5], ANT:[12.5,-70.5,-35.8], MAD:[35,-43.6,-3.4] },
+  ice:[],
+  sites:[
+    { plate:"SAM", lon:-68, lat:-30.2, cat:"fossil",
+      title:"Ischigualasto", sub:"231 million years old",
+      body:"A sequence of dated volcanic ash layers running through river sediments, which is why the earliest dinosaurs can be pinned down so precisely here. Eoraptor and Herrerasaurus come from this valley — bipedal, a metre or three long, and thoroughly outnumbered by crocodile-line reptiles they shared the plain with.",
+      then:{ where:"Seasonal river plain, about 45° south", icon:"fern",
+             text:"Volcanic ash falling on a forested floodplain with a strong wet and dry cycle." },
+      now:{ where:"Valle de la Luna, San Juan, Argentina", icon:"scrub",
+            text:"Wind-carved desert badlands in the Andean rain shadow, with sparse monte scrub of creosote bush and cactus." } },
+    { plate:"NAM", lon:-109.8, lat:34.9, cat:"forest",
+      title:"Petrified Forest", sub:"Chinle Formation, Arizona",
+      body:"Whole conifer trunks up to fifty metres long, silicified log by log, with the cell walls replaced by quartz coloured by iron and manganese. The main tree, Araucarioxylon arizonicum, is a relative of the monkey puzzle and the Norfolk Island pine.",
+      then:{ where:"Tropical river plain, about 15° north", icon:"conifer",
+             text:"Big rivers flowing north-west across a warm humid lowland, carrying logs into sandbanks." },
+      now:{ where:"Painted Desert, Arizona", icon:"grass",
+            text:"Cold semi-desert at 1,700 m. Blue grama, saltbush and rabbitbrush, and no trees at all for a hundred kilometres." } },
+    { plate:"NAM", lon:-74.5, lat:40.8, cat:"event",
+      title:"Pangaea starts to split", sub:"Newark rift basins",
+      body:"A chain of rift valleys opened from the Carolinas to Nova Scotia, filled with deep lakes whose sediments record cycles driven by the Earth's orbit. Magma pushed sideways into those sediments and cooled into a sheet of dolerite — the Palisades, the cliff wall along the Hudson opposite Manhattan.",
+      then:{ where:"Continental rift, about 15° north", icon:"volcano",
+             text:"Deep lakes between fault scarps, subtropical and strongly seasonal, with lava sheets spreading through." },
+      now:{ where:"Hudson Valley and New Jersey", icon:"city",
+            text:"The rift's shoulder is the Palisades cliff; its floor holds the New Jersey suburbs, under oak, tulip poplar and maple." } },
+    { plate:"AFR", lon:-7, lat:31.5, cat:"event",
+      title:"The largest lava province on Earth", sub:"CAMP, 201 Ma",
+      body:"When the rift finally tore, it erupted across four modern continents at once — Morocco, Iberia, eastern North America and Brazil. It is the most extensive flood basalt province known, and its carbon dioxide release lines up with the end-Triassic extinction that cleared the way for dinosaurs to dominate.",
+      then:{ where:"Central Pangaea rift", icon:"volcano",
+             text:"Fissure eruptions along the opening seam between Africa and North America." },
+      now:{ where:"High Atlas, Morocco", icon:"scrub",
+            text:"Basalt plateaus and gorges above argan and juniper scrub, with snow on the summits in winter." } },
+    { plate:"CHI", lon:102, lat:25, cat:"fossil",
+      title:"The Tethys shallows", sub:"Marine reptiles",
+      body:"Reptiles went back to the sea within a few million years of the extinction. The Chinese blocks, still separate and ringed by warm shallow water, preserve ichthyosaurs, long-necked sauropterygians and the strange hammer-headed filter feeder Atopodentatus.",
+      then:{ where:"Warm Tethyan shelf", icon:"sea",
+             text:"Shallow tropical carbonate platforms on isolated blocks east of Pangaea." },
+      now:{ where:"Yunnan and Guizhou, China", icon:"broadleaf",
+            text:"Karst limestone towers and gorges, subtropical, with evergreen broadleaf forest and rice terraces." } }
+  ]
+},
+{
+  id:"jur", name:"Jurassic", ma:155, span:"201–145 million years ago",
+  colour:"#34B2C9", accent:"#4FC6DC", view:[-15,10],
+  headline:"Pangaea splits into Laurasia and Gondwana",
+  body:[
+    "A seaway pushes east from the young Central Atlantic and joins the Tethys, cutting the supercontinent in two. North America, Europe and Asia form Laurasia in the north. South America, Africa, India, Australia and Antarctica form Gondwana in the south. This is the only interval when both names describe things that exist at the same time.",
+    "Sea level is high and warm shallow seas cover much of Europe. Sauropods reach their maximum size, and the first birds appear.",
+    "There is still no grass and no flower. Ground cover is fern; the canopy is conifer, cycad and ginkgo."
+  ],
+  facts:[
+    ["North pole","Open ocean, ice-free"],
+    ["South pole","Over Antarctica, forested, no ice sheet"],
+    ["Laurasia","North America, Europe, Asia"],
+    ["Gondwana","South America, Africa, India, Australia, Antarctica"]
+  ],
+    plates:{ NAM:[-31.6,41.5,-15.6], EUR:[7.2,32.6,-35], SIB:[-26.8,67.5,-7.8], CHI:[103,20,18],
+           IND:[50.2,-46.1,49.2], AFR:[10.2,-19,14.2], SAM:[-26.1,-26.8,-10.7],
+           AUS:[91.9,-57.1,-62.5], ANT:[16.2,-64.8,-18.1], MAD:[38.5,-38.7,10.8] },
+  ice:[],
+  sites:[
+    { plate:"NAM", lon:-108.5, lat:40, cat:"fossil",
+      title:"Morrison Formation", sub:"The classic dinosaur quarry",
+      body:"Allosaurus, Stegosaurus, Apatosaurus, Diplodocus and Brachiosaurus all come from this one rock unit, spread across the American west. The landscape was seasonally dry, with monsoon rains, braided rivers, and ribbons of conifer along the channels rather than continuous forest.",
+      then:{ where:"Semi-arid floodplain, about 35° north", icon:"conifer",
+             text:"Open country of ferns and horsetails with gallery forest along seasonal rivers. No grass, so 'plains' meant fern prairie." },
+      now:{ where:"Colorado, Utah and Wyoming", icon:"scrub",
+            text:"High sagebrush steppe and badlands. At Dinosaur National Monument a quarry wall with some 1,500 bones is left in place under a building." } },
+    { plate:"AFR", lon:39.5, lat:-9.9, cat:"fossil",
+      title:"Tendaguru", sub:"Tanzania",
+      body:"German expeditions between 1909 and 1913 moved several hundred tonnes of bone to Berlin on the heads of porters, over a four-day walk to the coast. The mounted Giraffatitan skeleton that came out of it is thirteen metres tall and still the tallest mounted dinosaur in any museum.",
+      then:{ where:"Coastal plain on the Gondwanan margin", icon:"cycad",
+             text:"Tidal flats and lagoons behind a warm shallow sea, backed by conifer and cycad woodland." },
+      now:{ where:"Lindi Region, Tanzania", icon:"broadleaf",
+            text:"Miombo woodland of Brachystegia and Julbernardia inland of the Indian Ocean coast, with a long dry season." } },
+    { plate:"EUR", lon:11, lat:48.9, cat:"fossil",
+      title:"Solnhofen", sub:"Archaeopteryx",
+      body:"A tropical archipelago in the Tethys, with oxygen-starved lagoons between the islands where nothing could scavenge a carcass. The limestone is so fine it was used for lithographic printing, and it preserves feathers, jellyfish and insect wings. Archaeopteryx is known from about a dozen specimens, all from here.",
+      then:{ where:"Tethyan lagoon, about 30° north", icon:"reef",
+             text:"Still, salty, oxygen-poor water between reef islands in a warm shallow sea." },
+      now:{ where:"Altmühl valley, Bavaria", icon:"broadleaf",
+            text:"Limestone hills and river valleys under beech, spruce and Scots pine, with the quarries still working." } },
+    { plate:"ANT", lon:167, lat:-84.3, cat:"fossil",
+      title:"Cryolophosaurus", sub:"Mount Kirkpatrick, Antarctica",
+      body:"A seven-metre predator with a crest running crossways over its eyes, dug out of frozen rock at 4,000 metres in the Transantarctic Mountains. Antarctica was polar then too, but ice-free and forested, and large dinosaurs lived there year round through the dark winters.",
+      then:{ where:"Polar forest, about 75° south", icon:"conifer",
+             text:"Conifer and fern forest on a river plain, cool and strongly seasonal, with no permanent ice." },
+      now:{ where:"Transantarctic Mountains", icon:"ice",
+            text:"Frozen scree at 4,000 metres, worked in a short summer window with rock saws and jackhammers." } },
+    { plate:"NAM", lon:-40, lat:36, cat:"sea",
+      title:"The Atlantic opens", sub:"A new ocean",
+      body:"The Central Atlantic is the oldest part of the modern ocean. Its floor grew from a mid-ocean ridge that is still there, still producing crust at roughly the speed a fingernail grows. Everything east of the North American coast and west of the African coast is younger than this seam.",
+      then:{ where:"A narrow new seaway", icon:"sea",
+             text:"A long salty gulf between North America and Africa, widening a few centimetres a year." },
+      now:{ where:"The Atlantic Ocean", icon:"sea",
+            text:"Around 5,000 km across at this latitude, and still widening at about 2.5 centimetres a year." } }
+  ]
+},
+{
+  id:"cre", name:"Cretaceous", ma:90, span:"145–66 million years ago",
+  colour:"#7FC64E", accent:"#95D468", view:[-30,15],
+  headline:"Flowers spread, and the sea cuts North America in half",
+  body:[
+    "Gondwana comes apart. South America separates from Africa, India breaks away and begins moving north faster than any large plate before or since, and Madagascar is left behind. The South Atlantic opens from the south upward like a zip.",
+    "Sea level is the highest of the last 500 million years. A seaway runs from the Arctic to the Gulf of Mexico and splits North America into two islands: Laramidia in the west, Appalachia in the east. Chalk — the compacted skeletons of microscopic algae — accumulates across Europe and the American interior.",
+    "Flowering plants appear early in the period and are dominant by the end of it. The forests that dinosaurs walked through in the last ten million years would look far more familiar than those of the Jurassic."
+  ],
+  facts:[
+    ["North pole","Open ocean, ice-free; forested land nearby"],
+    ["South pole","Over Antarctica, forested, no ice sheet"],
+    ["Sea level","Up to 250 m above today's"],
+    ["Ending","Asteroid impact at Chicxulub, 66 million years ago"]
+  ],
+    plates:{ NAM:[-76.8,53.1,1.8], EUR:[22.1,47.2,-4.5], SIB:[91,62.7,-4.7],
+           CHI:[111.5,30.4,11.6], IND:[47.5,-34.4,73.8], AFR:[10,-23.1,12.3],
+           SAM:[-38.5,-28.3,-31.4], AUS:[96.1,-51.9,-44.7], ANT:[28.4,-67.6,5.3],
+           MAD:[37.5,-32,0] },
+  ice:[],
+  sites:[
+    { plate:"NAM", lon:-100, lat:42, cat:"sea",
+      title:"Western Interior Seaway", sub:"North America divided",
+      body:"A shallow sea up to 900 metres deep ran the length of the continent. Its floor is now the chalk and shale under Kansas, Nebraska and the Dakotas, full of mosasaurs, the four-metre fish Xiphactinus, and flying reptiles. Dinosaur faunas on the two sides evolved separately.",
+      then:{ where:"A continental sea", icon:"sea",
+             text:"Warm, shallow and turbid, with no reefs but huge populations of swimming predators." },
+      now:{ where:"The Great Plains", icon:"grass",
+            text:"Shortgrass prairie and wheat, buffalo grass and blue grama, with the chalk standing up as the Smoky Hill badlands." } },
+    { plate:"CHI", lon:120.8, lat:41.6, cat:"fossil",
+      title:"Jehol Biota", sub:"Liaoning, China",
+      body:"Volcanic ash falling into cold deep lakes preserved feathers, skin, stomach contents and colour-bearing pigment structures. Sinosauropteryx, Microraptor and the flowering plant Archaefructus come from here. It is the single richest source of evidence that birds are dinosaurs.",
+      then:{ where:"Temperate volcanic lake district", icon:"conifer",
+             text:"Cool forested uplands of conifer, ginkgo and early flowering plants, with frequent ash falls." },
+      now:{ where:"Western Liaoning, China", icon:"broadleaf",
+            text:"Dry hills and terraced fields, cold winters, with oak, pine and a working fossil quarry economy." } },
+    { plate:"IND", lon:76, lat:18, cat:"event",
+      title:"India, travelling alone", sub:"A continent in transit",
+      body:"India broke from Madagascar around 88 million years ago and crossed the Tethys as an island continent, moving up to 15 centimetres a year. Its plants and animals evolved in isolation for tens of millions of years before it ran into Asia.",
+      then:{ where:"An island continent in the Tethys", icon:"palm",
+             text:"Tropical and isolated, with its own dinosaurs and, in its rivers, ancestors of the frogs and caecilians still found only in the Western Ghats." },
+      now:{ where:"The Deccan, India", icon:"grass",
+            text:"Basalt plateau under dry deciduous woodland, teak and acacia, cotton and sorghum on the black soils." } },
+    { plate:"ANT", lon:-57, lat:-64, cat:"forest",
+      title:"Forests in Antarctica", sub:"James Ross Island",
+      body:"Fossil leaves, wood and pollen from the Antarctic Peninsula, then at around 60° south, show a cool temperate rainforest of southern beech, podocarp and araucarian conifer, with ferns and early flowering plants beneath. Hadrosaurs and armoured dinosaurs lived in it.",
+      then:{ where:"High-latitude rainforest", icon:"conifer",
+             text:"Wet and cool, with very short winter days and a canopy adapted to grow hard through a brief bright summer." },
+      now:{ where:"Antarctic Peninsula", icon:"ice",
+            text:"Ice cliffs, moss beds and lichen. The two native flowering plants — a hair grass and a pearlwort — are spreading a little as the peninsula warms." } },
+    { plate:"EUR", lon:1.3, lat:51, cat:"sea",
+      title:"The chalk sea", sub:"Northern Europe",
+      body:"Chalk is made almost entirely of coccoliths: calcite plates a few thousandths of a millimetre across, shed by single-celled algae. Hundreds of metres of it accumulated in clear open water over a drowned Europe, a few grains a year.",
+      then:{ where:"Clear open shelf sea", icon:"sea",
+             text:"Warm water far from any river mouth, clear enough for algae to bloom and settle without mud." },
+      now:{ where:"Southern England and northern France", icon:"grass",
+            text:"The Downs and the white cliffs. Thin alkaline soil carries chalk grassland — wild thyme, rockrose and about thirty species of orchid." } }
+  ]
+},
+{
+  id:"pgn", name:"Paleogene", ma:50, span:"66–23 million years ago",
+  colour:"#FD9A52", accent:"#FDA86C", view:[-20,35],
+  headline:"A hot planet with forests at both poles",
+  body:[
+    "The dinosaurs other than birds are gone, mammals have expanded into the space they left, and the planet is passing through the warmest sustained climate of the last 65 million years. There is no permanent ice anywhere.",
+    "Laurasia is coming apart. Greenland separates from Europe and the North Atlantic opens; the volcanic rock that erupted along that tear is now Skye, Mull, the Giant's Causeway and eastern Iceland's ancestors.",
+    "India reaches Asia. The Tethys begins to close and the Himalaya starts to rise, which over the following tens of millions of years pulls carbon dioxide out of the air through weathering and helps cool the planet back down."
+  ],
+  facts:[
+    ["North pole","Ocean at roughly 23°C in summer, no sea ice"],
+    ["South pole","Over Antarctica, still forested, glaciation from 34 Ma"],
+    ["Climate","Warmest sustained interval since the dinosaurs"],
+    ["Collision","India meets Asia; the Himalaya begins"]
+  ],
+    plates:{ NAM:[-91.1,47.8,-1.9], EUR:[20.5,51,-3.2], SIB:[96.8,64.4,-1], CHI:[109,26,3.5],
+           IND:[71,5.9,-29.1], AFR:[13,-4.2,-8.6], SAM:[-47,-26,6.6], AUS:[121,-48,-7.9],
+           ANT:[0.9,-83,0.4], MAD:[41,-28,0] },
+  ice:[],
+  sites:[
+    { plate:"NAM", lon:-90, lat:79.4, cat:"forest",
+      title:"Axel Heiberg fossil forest", sub:"Canadian High Arctic",
+      body:"Stumps of Metasequoia up to two and a half metres across, still rooted in their soil with leaf litter on top. The wood is not petrified — it is mummified, dry enough to burn. These trees grew at about 79° north, through four months of continuous darkness every year.",
+      then:{ where:"Polar swamp forest", icon:"swamp",
+             text:"Dawn redwood and swamp cypress on a warm wet coastal plain, dropping their needles for the dark winter." },
+      now:{ where:"Axel Heiberg Island, Nunavut", icon:"tundra",
+            text:"Polar desert. A few centimetres of Arctic willow, saxifrage and moss, and the stumps still sticking out of the frozen ground." } },
+    { plate:"EUR", lon:0, lat:51.5, cat:"forest",
+      title:"London Clay", sub:"A tropical coast at 50° north",
+      body:"The clay under London has produced thousands of fossil fruits and seeds, and the list reads like Southeast Asia: palms, mangrove palm, cinnamon, magnolia, custard apple. Crocodilians and turtles lived in the estuary. The Thames basin was a tropical sea margin.",
+      then:{ where:"Warm shallow sea and mangrove coast", icon:"palm",
+             text:"A muddy tropical estuary opening into a warm shelf sea, fringed with Nypa mangrove palm." },
+      now:{ where:"London", icon:"city",
+            text:"Built on it. The clay is what the Underground tunnels through, and it shrinks and swells enough to crack foundations in a dry summer." } },
+    { plate:"EUR", lon:8.75, lat:49.9, cat:"fossil",
+      title:"Messel Pit", sub:"47 million years old",
+      body:"A flooded volcanic crater with stagnant bottom water, which preserved mammals complete with fur, gut contents and stomach bacteria. Bats are preserved with their last meal identifiable to species, and horses the size of a fox terrier are preserved pregnant.",
+      then:{ where:"Crater lake in subtropical forest", icon:"broadleaf",
+             text:"A deep maar lake ringed by warm humid forest, occasionally releasing gas that killed animals at the surface." },
+      now:{ where:"Hesse, Germany", icon:"broadleaf",
+            text:"An abandoned oil-shale quarry near Darmstadt, surrounded by beech and oak woodland and farmland." } },
+    { plate:"IND", lon:78, lat:30, cat:"event",
+      title:"India hits Asia", sub:"The Himalaya begins",
+      body:"The northern edge of India met the southern edge of Asia between about 55 and 50 million years ago, and neither could sink, so both crumpled. Marine limestone from the closed Tethys now sits near the summit of Everest, with fossil sea-floor shells in it at 8,800 metres.",
+      then:{ where:"A closing ocean", icon:"sea",
+             text:"The last of the Tethys being squeezed out between two converging continents." },
+      now:{ where:"The Himalaya", icon:"ice",
+            text:"The highest mountains on Earth, still rising about a centimetre a year, with rhododendron and birch forest below the treeline and ice above it." } },
+    { plate:"NAM", lon:-110, lat:41.5, cat:"forest",
+      title:"Green River lakes", sub:"Wyoming, Utah, Colorado",
+      body:"Three large subtropical lakes laid down paper-thin annual layers for millions of years. Fossil palms, crocodiles and stingrays come out of them, alongside more complete fossil fish than anywhere else on Earth.",
+      then:{ where:"Subtropical lake basin", icon:"palm",
+             text:"Warm lakes fringed with palm and sycamore, ringed by rising mountains." },
+      now:{ where:"Green River basin, Wyoming", icon:"scrub",
+            text:"Cold high desert above 2,000 m, sagebrush and greasewood, with winters well below freezing." } }
+  ]
+},
+{
+  id:"now", name:"Today", ma:0, span:"The present",
+  colour:"#F9F97F", accent:"#E8E86A", view:[-30,12],
+  headline:"The pieces, and where they ended up",
+  body:[
+    "Antarctica sits on the pole with an ice sheet up to 4.8 kilometres thick, in place for about 34 million years. The Arctic is an ocean with a floating ice lid. This is unusual: for most of the last 500 million years the Earth had ice at neither pole.",
+    "Gondwana is still legible in the living world. Southern beech, araucarian conifers and podocarps are spread across Chile, New Zealand, Tasmania and New Guinea — not because they crossed oceans, but because the land they grew on split apart beneath them.",
+    "The Atlantic is still opening at about 2.5 centimetres a year, Africa is still pushing into Europe, and India is still driving into Asia."
+  ],
+  facts:[
+    ["North pole","Ocean, covered by drifting sea ice"],
+    ["South pole","Antarctica, under roughly 2,700 m of ice"],
+    ["Ice on land","About 10 percent of the land surface"],
+    ["Still moving","Atlantic widening; Himalaya and Alps rising"]
+  ],
+    plates:{ NAM:[-95,50,0], EUR:[15,52,0], SIB:[105,65,0], CHI:[108,28,0], IND:[79,20,0],
+           AFR:[18,2,0], SAM:[-60,-20,0], AUS:[134,-25,0], ANT:[0,-83,0], MAD:[47,-19,0] },
+  ice:[{ plate:"ANT", lon:0, lat:-90, r:22 }],
+  sites:[
+    { plate:"SAM", lon:-72.5, lat:-41.5, cat:"forest",
+      title:"Valdivian rainforest", sub:"Living Gondwana",
+      body:"Southern beech, or Nothofagus, grows in Chile, Argentina, New Zealand, Tasmania, mainland Australia and New Guinea, and nowhere else. Its seeds do not travel far or survive salt water. The distribution is a map of a continent that broke up around it.",
+      then:{ where:"Gondwanan forest", icon:"conifer",
+             text:"The same lineage grew across southern Gondwana, Antarctica included, when the pieces were joined." },
+      now:{ where:"Los Ríos and Los Lagos, Chile", icon:"broadleaf",
+            text:"Cool temperate rainforest of coigüe, ulmo and alerce, with three metres of rain a year and a fern and bamboo understorey." } },
+    { plate:"AUS", lon:150.5, lat:-33.2, cat:"forest",
+      title:"Wollemi pine", sub:"Found alive in 1994",
+      body:"Known only as a fossil until a park ranger abseiled into a canyon in the Blue Mountains and found fewer than a hundred trees growing. Its lineage goes back more than 100 million years, and the wild location is kept secret to protect it from introduced root pathogens.",
+      then:{ where:"Cretaceous Gondwanan forest", icon:"conifer",
+             text:"Part of a widespread araucarian forest across southern Gondwana." },
+      now:{ where:"Wollemi National Park, New South Wales", icon:"conifer",
+            text:"A single sandstone canyon with its own damp microclimate, surrounded by dry eucalypt forest." } },
+    { plate:"ANT", lon:0, lat:-90, cat:"ice",
+      title:"The South Pole", sub:"Under the ice",
+      body:"The ice at the geographic pole is about 2,700 metres thick and the bedrock beneath is near sea level. Ice cores drilled nearby hold continuous atmospheric records going back 800,000 years, with air bubbles that can be sampled directly.",
+      then:{ where:"Forested, repeatedly", icon:"conifer",
+             text:"This continent carried Glossopteris forest in the Permian and beech and conifer rainforest in the Cretaceous." },
+      now:{ where:"Antarctic plateau", icon:"ice",
+            text:"Nothing grows. Mean annual temperature around −49°C, and the nearest plants are mosses on the peninsula, 2,000 km away." } },
+    { plate:"AFR", lon:15, lat:0, cat:"forest",
+      title:"Congo Basin", sub:"On old Gondwanan crust",
+      body:"The rock under the Congo rainforest is some of the oldest continental crust on the planet, and it carried the Karoo glaciation in the Carboniferous. The forest sitting on it now is the second largest in the world and holds about 10,000 plant species, a third of them found nowhere else.",
+      then:{ where:"Glaciated, then desert", icon:"ice",
+             text:"Under ice in the Carboniferous; deep inside Pangaea's arid interior in the Permian and Triassic." },
+      now:{ where:"Central Africa", icon:"broadleaf",
+            text:"Lowland tropical rainforest, 1,600–2,000 mm of rain a year, with a canopy 40 m up and okoumé and sapele above it." } },
+    { plate:"NAM", lon:-89.5, lat:21.4, cat:"event",
+      title:"Chicxulub", sub:"66 million years ago",
+      body:"A 10-kilometre asteroid struck a shallow sea over sulphur-rich rock, which is part of why the impact was so lethal: vaporised sulphate blocked sunlight for years. The 180-kilometre crater is buried under the Yucatán, traceable at the surface only as a ring of sinkholes.",
+      then:{ where:"Shallow carbonate platform", icon:"reef",
+             text:"Warm shelf sea over gypsum and limestone, on the southern edge of North America." },
+      now:{ where:"Yucatán, Mexico", icon:"broadleaf",
+            text:"Flat limestone plain under dry tropical forest, with the crater rim marked by a semicircle of cenotes." } }
+  ]
+}
+];
+
+/* ===================== state ===================== */
+const svg = document.getElementById("globe");
+const NS = "http://www.w3.org/2000/svg";
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let idx = PERIODS.length - 1;      // start at Today
+let fromIdx = idx, tMix = 1;        // drift interpolation
+let driftStart = 0, driftDur = reduced ? 1 : 1500;
+let camTarget = null, camStart = 0, camFrom = null;
+let spinning = !reduced, dragging = false, playing = false, playTimer = null;
+let showIce = true, showGrid = true;
+let selected = null, hint = document.getElementById("globeHint"), hintGone = false;
+
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function shortDelta(d){ while (d > 180) d -= 360; while (d < -180) d += 360; return d; }
+function lerpPose(a, b, t){
+  return [ a[0] + shortDelta(b[0]-a[0])*t, a[1] + (b[1]-a[1])*t, a[2] + shortDelta(b[2]-a[2])*t ];
+}
+const ease = t => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+
+/* ===================== scaffolding ===================== */
+const defs = el("defs", {}, svg);
+const og = el("radialGradient", { id:"oceanG", cx:"36%", cy:"30%", r:"78%" }, defs);
+el("stop", { offset:"0%",  "stop-color":"#1B5876" }, og);
+el("stop", { offset:"58%", "stop-color":"#0E3549" }, og);
+el("stop", { offset:"100%","stop-color":"#061823" }, og);
+const sg = el("radialGradient", { id:"shadeG", cx:"36%", cy:"30%", r:"78%" }, defs);
+el("stop", { offset:"0%",   "stop-color":"#fff", "stop-opacity":".13" }, sg);
+el("stop", { offset:"46%",  "stop-color":"#fff", "stop-opacity":"0" }, sg);
+el("stop", { offset:"86%",  "stop-color":"#000", "stop-opacity":".26" }, sg);
+el("stop", { offset:"100%", "stop-color":"#000", "stop-opacity":".55" }, sg);
+
+el("circle", { cx:CX, cy:CY, r:R+16, fill:"none", stroke:"#1A2833", "stroke-width":1 }, svg);
+el("circle", { cx:CX, cy:CY, r:R, fill:"url(#oceanG)" }, svg);
+const gGrid  = el("g", { id:"gGrid", fill:"none", stroke:"#4D8FAE", "stroke-opacity":".2",
+                         "stroke-width":".8" }, svg);
+const gEq    = el("path", { fill:"none", stroke:"#7FD0E8", "stroke-opacity":".34",
+                            "stroke-width":"1.2", "stroke-dasharray":"5 4" }, svg);
+const gLand  = el("g", { id:"gLand" }, svg);
+const gIce   = el("g", { id:"gIce" }, svg);
+const gMark  = el("g", { id:"gMark" }, svg);
+el("circle", { cx:CX, cy:CY, r:R, fill:"url(#shadeG)", "pointer-events":"none" }, svg);
+el("circle", { cx:CX, cy:CY, r:R, fill:"none", stroke:"#8FBDD4", "stroke-opacity":".22",
+               "stroke-width":1.2, "pointer-events":"none" }, svg);
+const gPole  = el("g", { id:"gPole", "pointer-events":"none" }, svg);
+
+/* land paths, created once */
+const landPaths = {};
+for (const id of PLATE_IDS){
+  const g = el("g", { class:"plate" }, gLand);
+  landPaths[id] = PLATES[id].rings.map(() =>
+    el("path", { fill:"#C9A97B", stroke:"#7E6642", "stroke-width":".9",
+                 "stroke-linejoin":"round" }, g));
+}
+
+/* graticule geometry */
+const MERIDIANS = [], PARALLELS = [];
+for (let lon = -180; lon < 180; lon += 30){
+  const pts = []; for (let lat = -90; lat <= 90; lat += 3) pts.push(vec(lon, lat));
+  MERIDIANS.push(pts);
+}
+for (let lat = -60; lat <= 60; lat += 30){
+  const pts = []; for (let lon = -180; lon <= 180; lon += 3) pts.push(vec(lon, lat));
+  PARALLELS.push(pts);
+}
+const EQUATOR = []; for (let lon = -180; lon <= 180; lon += 3) EQUATOR.push(vec(lon, 0));
+const gridPaths = MERIDIANS.concat(PARALLELS).map(() => el("path", {}, gGrid));
+
+/* broken polyline: only the visible arc is drawn */
+function linePath(pts){
+  let d = "", pen = false;
+  for (const p of pts){
+    const s = project(p);
+    if (!s[2]){ pen = false; continue; }
+    d += (pen ? "L" : "M") + s[0].toFixed(1) + " " + s[1].toFixed(1);
+    pen = true;
+  }
+  return d;
+}
+function ringVisible(pts){
+  for (const p of pts) if (project(p)[2]) return true;
+  return false;
+}
+
+/* ===================== per-period rendering ===================== */
+const CAT_COLOUR = { fossil:"#E4705A", forest:"#6FBE7E", event:"#C58BD6",
+                     ice:"#7FD0E8", sea:"#59A8D8" };
+const CAT_LABEL = { fossil:"Animals and fossils", forest:"Plants and forests",
+                    event:"Tectonics and climate", ice:"Ice", sea:"Seas" };
+let markNodes = [], iceNodes = [];
+
+function poseOf(plate, i){ return PERIODS[i].plates[plate]; }
+function currentPose(plate){
+  const a = poseOf(plate, fromIdx), b = poseOf(plate, idx);
+  return tMix >= 1 ? b : lerpPose(a, b, ease(tMix));
+}
+
+function buildPeriod(){
+  gMark.textContent = ""; gIce.textContent = "";
+  markNodes = []; iceNodes = [];
+  for (const src of [[fromIdx, 1], [idx, 0]]){
+    for (const ic of (PERIODS[src[0]].ice || [])){
+      const path = el("path", { fill:"#E8F4F8", "fill-opacity":".62",
+                                stroke:"#FFFFFF", "stroke-opacity":".5", "stroke-width":".8" }, gIce);
+      iceNodes.push({ node:path, ice:ic, which:src[1] });
+    }
+  }
+  PERIODS[idx].sites.forEach((s, n) => {
+    const g = el("g", { class:"mk", role:"button", tabindex:"0",
+                        "aria-label":s.title, style:"cursor:pointer" }, gMark);
+    const ring = el("circle", { r:11, fill:"none", stroke:CAT_COLOUR[s.cat],
+                                "stroke-width":1.4, "stroke-opacity":".0" }, g);
+    el("circle", { r:7.5, fill:"#07131B", "fill-opacity":".55" }, g);
+    const dot = el("circle", { r:4.6, fill:CAT_COLOUR[s.cat], stroke:"#07131B",
+                               "stroke-width":1.2 }, g);
+    el("title", {}, g).textContent = s.title;
+    g.addEventListener("click", () => selectSite(n));
+    g.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); selectSite(n); }
+    });
+    markNodes.push({ g, ring, dot, site:s, n });
+  });
+}
+
+function draw(){
+  const poses = {};
+  for (const id of PLATE_IDS) poses[id] = currentPose(id);
+
+  if (showGrid){
+    gGrid.style.display = ""; gEq.style.display = "";
+    MERIDIANS.concat(PARALLELS).forEach((pts, i) => gridPaths[i].setAttribute("d", linePath(pts)));
+    gEq.setAttribute("d", linePath(EQUATOR));
+  } else { gGrid.style.display = "none"; gEq.style.display = "none"; }
+
+  for (const id of PLATE_IDS){
+    const p = poses[id];
+    const T = plateTransform(PLATES[id].home, p[0], p[1], p[2]);
+    PLATES[id].vecs.forEach((ring, r) => {
+      const moved = ring.map(T);
+      const node = landPaths[id][r];
+      if (!ringVisible(moved)){ node.setAttribute("d", ""); return; }
+      node.setAttribute("d", ringPath(moved));
+    });
+  }
+
+  gIce.style.display = showIce ? "" : "none";
+  if (showIce) for (const it of iceNodes){
+    const p = poses[it.ice.plate];
+    const T = plateTransform(PLATES[it.ice.plate].home, p[0], p[1], p[2]);
+    const centre = T(vec(it.ice.lon, it.ice.lat));
+    const ring = capRing(centre, it.ice.r, 48);
+    it.node.setAttribute("d", ringVisible(ring) ? ringPath(ring) : "");
+    const k = it.which ? (1 - ease(tMix)) : ease(tMix);
+    it.node.setAttribute("opacity", tMix >= 1 ? (it.which ? 0 : 1) : k);
+  }
+
+  const appear = ease(Math.max(0, Math.min(1, (tMix - .45) / .55)));
+  for (const m of markNodes){
+    const p = poses[m.site.plate];
+    const T = plateTransform(PLATES[m.site.plate].home, p[0], p[1], p[2]);
+    const s = project(T(vec(m.site.lon, m.site.lat)));
+    m.g.setAttribute("transform", "translate(" + s[0].toFixed(1) + "," + s[1].toFixed(1) + ")");
+    const on = s[2] ? appear : 0;
+    m.g.setAttribute("opacity", on);
+    m.g.style.pointerEvents = on > .3 ? "auto" : "none";
+    const sel = selected === m.n;
+    m.ring.setAttribute("stroke-opacity", sel ? .95 : 0);
+    m.ring.setAttribute("r", sel ? 11 : 8);
+    m.dot.setAttribute("r", sel ? 6 : 4.6);
+  }
+
+  /* pole pins */
+  gPole.textContent = "";
+  for (const pole of [[90, "N"], [-90, "S"]]){
+    const s = project(vec(0, pole[0]));
+    if (!s[2]) continue;
+    el("circle", { cx:s[0], cy:s[1], r:3.1, fill:"none", stroke:"#E7EEF3",
+                   "stroke-opacity":".62", "stroke-width":1.2 }, gPole);
+    el("circle", { cx:s[0], cy:s[1], r:1, fill:"#E7EEF3", "fill-opacity":".62" }, gPole);
+    const tx = el("text", { x:s[0] + 8, y:s[1] + 4, fill:"#9FB4C1", "font-size":"11.5",
+                            "font-family":"IBM Plex Sans, sans-serif" }, gPole);
+    tx.textContent = pole[1];
+  }
+}
+
+/* ===================== animation loop ===================== */
+function frame(now){
+  if (tMix < 1){
+    tMix = Math.min(1, (now - driftStart) / driftDur);
+  }
+  if (camTarget){
+    const k = Math.min(1, (now - camStart) / (reduced ? 1 : 900));
+    const e = ease(k);
+    viewLon = camFrom[0] + shortDelta(camTarget[0] - camFrom[0]) * e;
+    viewLat = camFrom[1] + (camTarget[1] - camFrom[1]) * e;
+    if (k >= 1) camTarget = null;
+  } else if (spinning && !dragging){
+    viewLon += 0.055;
+  }
+  if (viewLon > 180) viewLon -= 360; if (viewLon < -180) viewLon += 360;
+  draw();
+  requestAnimationFrame(frame);
+}
+
+/* ===================== panel ===================== */
+const panel = document.getElementById("panel");
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+
+function renderPeriod(){
+  const p = PERIODS[idx];
+  selected = null;
+  panel.innerHTML =
+    '<div class="fade">' +
+    '<p class="kicker">' + esc(p.span) + '</p>' +
+    '<h2 class="p-head">' + esc(p.headline) + '</h2>' +
+    p.body.map(b => '<p class="p-body">' + esc(b) + '</p>').join("") +
+    '<ul class="facts">' + p.facts.map(f =>
+      '<li><span class="k">' + esc(f[0]) + '</span><span class="v">' + esc(f[1]) + '</span></li>'
+    ).join("") + '</ul>' +
+    '<p class="sites-title">Places on this globe — click a marker or a name</p>' +
+    '<ul class="sites">' + p.sites.map((s, n) =>
+      '<li><button class="site-btn" data-n="' + n + '">' +
+      '<span class="pin" style="background:' + CAT_COLOUR[s.cat] + '"></span>' +
+      '<span><span class="st">' + esc(s.title) + '</span><br>' +
+      '<span class="sd">' + esc(s.sub) + '</span></span></button></li>'
+    ).join("") + '</ul></div>';
+  panel.querySelectorAll(".site-btn").forEach(b =>
+    b.addEventListener("click", () => selectSite(+b.dataset.n)));
+  panel.scrollTop = 0;
+}
+
+function renderSite(n){
+  const p = PERIODS[idx], s = p.sites[n];
+  panel.innerHTML =
+    '<div class="fade">' +
+    '<button class="back">&larr; ' + esc(p.name) + '</button>' +
+    '<p class="kicker">' + esc(CAT_LABEL[s.cat]) + '</p>' +
+    '<h2 class="p-head">' + esc(s.title) + '</h2>' +
+    '<p class="p-sub">' + esc(s.sub) + '</p>' +
+    '<p class="p-body">' + esc(s.body) + '</p>' +
+    '<div class="thennow">' +
+    '<div class="tn"><h4>' + p.ma + ' million years ago</h4>' +
+      '<div class="scene">' + iconSVG(s.then.icon, CAT_COLOUR[s.cat]) + '</div>' +
+      '<p class="where">' + esc(s.then.where) + '</p><p>' + esc(s.then.text) + '</p></div>' +
+    '<div class="tn"><h4>Today</h4>' +
+      '<div class="scene">' + iconSVG(s.now.icon, "#8FA3B0") + '</div>' +
+      '<p class="where">' + esc(s.now.where) + '</p><p>' + esc(s.now.text) + '</p></div>' +
+    '</div></div>';
+  panel.querySelector(".back").addEventListener("click", renderPeriod);
+  panel.scrollTop = 0;
+}
+
+function selectSite(n){
+  selected = n;
+  renderSite(n);
+  const s = PERIODS[idx].sites[n];
+  const p = currentPose(s.plate);
+  const T = plateTransform(PLATES[s.plate].home, p[0], p[1], p[2]);
+  const v = norm(T(vec(s.lon, s.lat)));
+  const lon = Math.atan2(v[1], v[0]) / D;
+  const lat = Math.asin(Math.max(-1, Math.min(1, v[2]))) / D;
+  camFrom = [viewLon, viewLat]; camStart = performance.now();
+  camTarget = [lon, Math.max(-72, Math.min(72, lat))];
+  hideHint();
+}
+
+/* ===================== period switching ===================== */
+function setPeriod(next, instant){
+  if (next === idx) return;
+  fromIdx = idx; idx = next; tMix = 0;
+  driftStart = performance.now();
+  driftDur = (reduced || instant) ? 1 : 1500;
+  const p = PERIODS[idx];
+  document.documentElement.style.setProperty("--accent", p.accent);
+  document.getElementById("stampName").textContent = p.name;
+  document.getElementById("stampAge").textContent = p.ma === 0 ? "present" : p.ma + " Ma";
+  document.querySelectorAll(".seg").forEach((b, i) =>
+    b.setAttribute("aria-current", i === idx ? "true" : "false"));
+  buildPeriod();
+  renderPeriod();
+  if (p.view && !camTarget){
+    camFrom = [viewLon, viewLat]; camStart = performance.now();
+    camTarget = [p.view[0], p.view[1]];
+  }
+}
+
+/* ===================== timeline ribbon ===================== */
+const ribbon = document.getElementById("ribbon");
+PERIODS.forEach((p, i) => {
+  const b = document.createElement("button");
+  b.className = "seg"; b.setAttribute("role", "tab");
+  b.setAttribute("aria-current", i === idx ? "true" : "false");
+  b.innerHTML = '<span class="bar" style="background:' + p.colour + '"></span>' +
+                '<span class="lab">' + p.name +
+                '<span class="ma">' + (p.ma === 0 ? "now" : p.ma + " Ma") + '</span></span>';
+  b.addEventListener("click", () => { stopPlay(); setPeriod(i); });
+  ribbon.appendChild(b);
+});
+
+/* ===================== controls ===================== */
+const playBtn = document.getElementById("playBtn"), playLabel = document.getElementById("playLabel");
+function stopPlay(){
+  playing = false; clearInterval(playTimer); playLabel.textContent = "Play";
+  playBtn.setAttribute("aria-label", "Play through time");
+}
+playBtn.addEventListener("click", () => {
+  if (playing){ stopPlay(); return; }
+  playing = true; playLabel.textContent = "Pause";
+  if (idx === PERIODS.length - 1) setPeriod(0);
+  playTimer = setInterval(() => {
+    if (idx >= PERIODS.length - 1){ stopPlay(); return; }
+    setPeriod(idx + 1);
+  }, 4200);
+});
+
+document.querySelectorAll("[data-view]").forEach(b => {
+  b.addEventListener("click", () => {
+    const v = b.dataset.view.split(",").map(Number);
+    camFrom = [viewLon, viewLat]; camStart = performance.now(); camTarget = v;
+    hideHint();
+  });
+});
+function toggle(id, get, set){
+  const b = document.getElementById(id);
+  b.addEventListener("click", () => { set(!get()); b.setAttribute("aria-pressed", get()); });
+}
+toggle("togIce",  () => showIce,  v => showIce = v);
+toggle("togGrid", () => showGrid, v => showGrid = v);
+toggle("togSpin", () => spinning, v => spinning = v);
+
+/* drag to rotate */
+let px = 0, py = 0;
+function hideHint(){ if (!hintGone){ hintGone = true; hint.classList.add("hide"); } }
+svg.addEventListener("pointerdown", e => {
+  dragging = true; px = e.clientX; py = e.clientY;
+  svg.setPointerCapture(e.pointerId); svg.classList.add("dragging"); hideHint();
+});
+svg.addEventListener("pointermove", e => {
+  if (!dragging) return;
+  const k = 380 / svg.getBoundingClientRect().width;
+  viewLon -= (e.clientX - px) * 0.32 * k;
+  viewLat = Math.max(-88, Math.min(88, viewLat + (e.clientY - py) * 0.32 * k));
+  px = e.clientX; py = e.clientY; camTarget = null;
+});
+function endDrag(e){
+  if (!dragging) return;
+  dragging = false; svg.classList.remove("dragging");
+  try { svg.releasePointerCapture(e.pointerId); } catch (err) {}
+}
+svg.addEventListener("pointerup", endDrag);
+svg.addEventListener("pointercancel", endDrag);
+svg.addEventListener("keydown", e => {
+  const step = 9;
+  if (e.key === "ArrowLeft")  { viewLon -= step; camTarget = null; e.preventDefault(); }
+  if (e.key === "ArrowRight") { viewLon += step; camTarget = null; e.preventDefault(); }
+  if (e.key === "ArrowUp")    { viewLat = Math.min(88, viewLat + step); camTarget = null; e.preventDefault(); }
+  if (e.key === "ArrowDown")  { viewLat = Math.max(-88, viewLat - step); camTarget = null; e.preventDefault(); }
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") hideHint();
+});
+
+/* about dialog */
+const dlg = document.getElementById("aboutDlg");
+document.getElementById("aboutBtn").addEventListener("click", () => dlg.showModal());
+document.getElementById("aboutClose").addEventListener("click", () => dlg.close());
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
+/* ===================== go ===================== */
+document.documentElement.style.setProperty("--accent", PERIODS[idx].accent);
+document.getElementById("stampName").textContent = PERIODS[idx].name;
+document.getElementById("stampAge").textContent = "present";
+buildPeriod();
+renderPeriod();
+requestAnimationFrame(frame);
+
+</script>
+</body>
+</html>
